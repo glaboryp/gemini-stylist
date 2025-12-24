@@ -1,0 +1,42 @@
+# General
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+.idea
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Environment Variables
+.env
+.env.*
+!.env.example
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Frontend (Node/Vue)
+node_modules
+dist
+dist-ssr
+*.local
+.eslintcache
+coverage/
+*.tsbuildinfo
+
+# Backend (Python)
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Project Specific
+temp_uploads/
