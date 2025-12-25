@@ -14,7 +14,7 @@ export const useWardrobeStore = defineStore('wardrobe', {
       this.inventory = mockInventory;
       this.messages.push({
         role: 'system',
-        content: 'Modo Demo activado. He analizado tu armario simulado. ¿Qué necesitas hoy?'
+        content: 'Demo Mode activated. I have analyzed your simulated wardrobe. What do you need today?'
       });
     },
     async analyzeVideo(file) {
@@ -31,16 +31,16 @@ export const useWardrobeStore = defineStore('wardrobe', {
           }
         });
 
-        if (response.data && response.data.inventario) {
-          this.inventory = response.data.inventario;
+        if (response.data && response.data.inventory) {
+          this.inventory = response.data.inventory;
           this.messages.push({
             role: 'system',
-            content: 'Análisis de video completado. He detectado tus prendas.'
+            content: 'Video analysis complete. I have detected your clothing items.'
           });
         }
       } catch (err) {
         console.error(err);
-        this.error = "Error al analizar el video.";
+        this.error = "Error analyzing video.";
       } finally {
         this.loading = false;
       }
@@ -51,7 +51,7 @@ export const useWardrobeStore = defineStore('wardrobe', {
         
         // Simple heuristic response
         setTimeout(() => {
-            const response = "¡Entendido! Basado en tu armario, te sugiero combinar la prenda superior con algo neutro.";
+            const response = "Got it! Based on your wardrobe, I suggest pairing the top with something neutral.";
             this.messages.push({ role: 'system', content: response });
         }, 1000);
     }

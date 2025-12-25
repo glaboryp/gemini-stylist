@@ -3,7 +3,7 @@
     <div class="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg">
       <div class="text-center">
         <h2 class="mt-6 text-3xl font-extrabold text-gray-900">Gemini Stylist</h2>
-        <p class="mt-2 text-sm text-gray-600">Sube un video de tu armario o prueba la demo.</p>
+        <p class="mt-2 text-sm text-gray-600">Upload a video of your wardrobe or try the demo.</p>
       </div>
       
       <!-- Drag & Drop Area -->
@@ -19,19 +19,19 @@
           </svg>
           <div class="flex text-sm text-gray-600">
             <label for="file-upload" class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
-              <span>Sube un video</span>
+              <span>Upload a video</span>
               <input id="file-upload" name="file-upload" type="file" class="sr-only" accept="video/*" @change="handleFileSelect" ref="fileInput">
             </label>
-            <p class="pl-1">o arrastra y suelta</p>
+            <p class="pl-1">or drag and drop</p>
           </div>
-          <p class="text-xs text-gray-500">MP4, MOV hasta 50MB</p>
+          <p class="text-xs text-gray-500">MP4, MOV up to 50MB</p>
         </div>
       </div>
 
       <div v-if="selectedFile" class="text-sm text-gray-700 bg-gray-100 p-2 rounded">
-        Seleccionado: {{ selectedFile.name }}
+        Selected: {{ selectedFile.name }}
         <button @click.stop="analyzeVideo" class="mt-2 w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-            {{ store.loading ? 'Analizando...' : 'Analizar Armario' }}
+            {{ store.loading ? 'Analyzing...' : 'Analyze Wardrobe' }}
         </button>
       </div>
 
@@ -40,7 +40,7 @@
           <div class="w-full border-t border-gray-300"></div>
         </div>
         <div class="relative flex justify-center text-sm">
-          <span class="px-2 bg-white text-gray-500">O para los jueces</span>
+          <span class="px-2 bg-white text-gray-500">Or for judges</span>
         </div>
       </div>
 
@@ -49,7 +49,7 @@
           @click="startDemo"
           class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
         >
-          Probar Demo (Jueces)
+          Try Demo (Judges)
         </button>
       </div>
     </div>

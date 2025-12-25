@@ -1,52 +1,52 @@
 export const mockInventory = [
-    {
-      id: "1",
-      tipo: "Superior",
-      subtipo: "Camisa",
-      color_principal: "Azul Cielo",
-      patrones: "Liso",
-      temporada_ideal: "Primavera/Verano",
-      formalidad: 7,
-      etiquetas_busqueda: ["camisa", "azul", "oficina", "casual"]
-    },
-    {
-      id: "2",
-      tipo: "Inferior",
-      subtipo: "Pantalón Chino",
-      color_principal: "Beige",
-      patrones: "Liso",
-      temporada_ideal: "Todo el año",
-      formalidad: 6,
-      etiquetas_busqueda: ["chino", "beige", "smart-casual"]
-    },
-    {
-      id: "3",
-      tipo: "Superior",
-      subtipo: "Chaqueta Denim",
-      color_principal: "Azul Oscuro",
-      patrones: "Desgastado",
-      temporada_ideal: "Otoño/Invierno",
-      formalidad: 4,
-      etiquetas_busqueda: ["chaqueta", "denim", "informal"]
-    },
-    {
-      id: "4",
-      tipo: "Calzado",
-      subtipo: "Zapatillas Blancas",
-      color_principal: "Blanco",
-      patrones: "Liso",
-      temporada_ideal: "Todo el año",
-      formalidad: 3,
-      etiquetas_busqueda: ["zapatillas", "blanco", "cómodo"]
-    },
-    {
-      id: "5",
-      tipo: "Superior",
-      subtipo: "Camiseta",
-      color_principal: "Negro",
-      patrones: "Estampado Gráfico",
-      temporada_ideal: "Verano",
-      formalidad: 2,
-      etiquetas_busqueda: ["camiseta", "negro", "streetwear"]
-    }
-  ];
+  {
+    id: "1",
+    type: "Top",
+    subtype: "Shirt",
+    primary_color: "Sky Blue",
+    patterns: "Solid",
+    season: "Spring/Summer",
+    formality: 7,
+    search_tags: ["shirt", "blue", "office", "casual"],
+  },
+  {
+    id: "2",
+    type: "Bottom",
+    subtype: "Chino Pants",
+    primary_color: "Beige",
+    patterns: "Solid",
+    season: "Year-round",
+    formality: 6,
+    search_tags: ["chino", "beige", "smart-casual"],
+  },
+  {
+    id: "3",
+    type: "Top",
+    subtype: "Denim Jacket",
+    primary_color: "Dark Blue",
+    patterns: "Distressed",
+    season: "Autumn/Winter",
+    formality: 4,
+    search_tags: ["jacket", "denim", "informal"],
+  },
+  {
+    id: "4",
+    type: "Shoes",
+    subtype: "White Sneakers",
+    primary_color: "White",
+    patterns: "Solid",
+    season: "Year-round",
+    formality: 3,
+    search_tags: ["sneakers", "white", "comfy"],
+  },
+  {
+    id: "5",
+    type: "Top",
+    subtype: "T-Shirt",
+    primary_color: "Black",
+    patterns: "Graphic Print",
+    season: "Summer",
+    formality: 2,
+    search_tags: ["t-shirt", "black", "streetwear"],
+  },
+];

@@ -3,12 +3,12 @@
     <!-- Main Content: Wardrobe Grid -->
     <main class="flex-1 p-6 overflow-y-auto h-screen">
       <div class="mb-6 flex justify-between items-center">
-        <h1 class="text-2xl font-bold text-gray-900">Tu Armario Digital</h1>
-        <button @click="$router.push('/')" class="text-indigo-600 hover:text-indigo-800">Volver</button>
+        <h1 class="text-2xl font-bold text-gray-900">Your Digital Wardrobe</h1>
+        <button @click="$router.push('/')" class="text-indigo-600 hover:text-indigo-800">Back</button>
       </div>
       
       <div v-if="store.inventory.length === 0" class="text-center py-20 text-gray-500">
-        No hay prendas cargadas.
+        No clothing items loaded.
       </div>
 
       <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -18,15 +18,15 @@
              <span class="text-4xl">👕</span>
           </div>
           <div class="p-4">
-            <h3 class="text-lg font-medium text-gray-900">{{ item.subtipo }} {{ item.color_principal }}</h3>
-            <p class="text-sm text-gray-500">{{ item.temporada_ideal }} • {{ item.patrones }}</p>
+            <h3 class="text-lg font-medium text-gray-900">{{ item.subtype }} {{ item.primary_color }}</h3>
+            <p class="text-sm text-gray-500">{{ item.season }} • {{ item.patterns }}</p>
             <div class="mt-2 flex flex-wrap gap-1">
-                <span v-for="tag in item.etiquetas_busqueda" :key="tag" class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800">
+                <span v-for="tag in item.search_tags" :key="tag" class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800">
                     {{ tag }}
                 </span>
             </div>
             <div class="mt-2 text-xs text-gray-400">
-                Formalidad: {{ item.formalidad }}/10
+                Formality: {{ item.formality }}/10
             </div>
           </div>
         </div>
@@ -37,7 +37,7 @@
     <aside class="w-full md:w-96 bg-white border-l border-gray-200 flex flex-col h-screen">
       <div class="p-4 border-b border-gray-200 bg-indigo-600 text-white">
         <h2 class="text-lg font-semibold">Gemini Stylist Chat</h2>
-        <p class="text-xs opacity-80">Pídeme un outfit para una ocasión.</p>
+        <p class="text-xs opacity-80">Ask me for an outfit for an occasion.</p>
       </div>
       
       <div class="flex-1 p-4 overflow-y-auto space-y-4" id="chat-container">
@@ -53,11 +53,11 @@
           <input 
             v-model="newMessage" 
             type="text" 
-            placeholder="Ej: Outfit para una cena..." 
+            placeholder="Ex: Outfit for a dinner..." 
             class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
           >
           <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700">
-            Enviar
+            Send
           </button>
         </form>
       </div>
