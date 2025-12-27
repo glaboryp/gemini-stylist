@@ -11,6 +11,8 @@ GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 if not GEMINI_API_KEY:
     print("WARNING: GEMINI_API_KEY not found in environment variables.")
 
+MODEL_ID = "gemini-3-flash-preview"
+
 try:
     client = genai.Client(api_key=GEMINI_API_KEY)
 except Exception as e:
@@ -151,7 +153,7 @@ def chat_with_stylist_service(user_message: str, chat_history: list, inventory_c
 
     try:
         response = client.models.generate_content(
-            model="gemini-3-flash-preview",
+            model="gemini-2.5-flash",
             contents=contents,
             config=types.GenerateContentConfig(
                 tools=[google_search_tool],
