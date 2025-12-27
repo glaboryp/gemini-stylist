@@ -3,7 +3,9 @@ import os
 from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
-from services import analyze_video_service
+from services import analyze_video_service, chat_with_stylist_service
+from pydantic import BaseModel
+from typing import List, Optional, Any
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -45,10 +47,30 @@ async def analyze_video(file: UploadFile = File(...)):
     try:
         # Call Gemini Service
         result = analyze_video_service(temp_file_path)
+        print(f"Service Result: {result}")
         return result
     except Exception as e:
+        print(f"Service Error: {e}")
         return {"error": str(e)}
     finally:
         # Cleanup temp file
         if os.path.exists(temp_file_path):
             os.remove(temp_file_path)
+
+class ChatRequest(BaseModel):
+    user_message: str
+    chat_history: List[dict]
+    inventory_context: List[dict]
+
+@app.post("/api/chat")
+async def chat(request: ChatRequest):
+    try:
+        response = chat_with_stylist_service(
+            user_message=request.user_message,
+            chat_history=request.chat_history,
+            inventory_context=request.inventory_context
+        )
+        return response
+    except Exception as e:
+        print(f"Chat Error: {e}")
+        return {"error": str(e)}

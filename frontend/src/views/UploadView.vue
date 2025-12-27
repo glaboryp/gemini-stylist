@@ -1,58 +1,85 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-    <div class="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg">
-      <div class="text-center">
-        <h2 class="mt-6 text-3xl font-extrabold text-gray-900">Gemini Stylist</h2>
-        <p class="mt-2 text-sm text-gray-600">Upload a video of your wardrobe or try the demo.</p>
-      </div>
-      
-      <!-- Drag & Drop Area -->
-      <div 
-        class="mt-8 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md hover:border-indigo-500 transition-colors cursor-pointer"
-        @dragover.prevent
-        @drop.prevent="handleDrop"
-        @click="triggerFileInput"
-      >
-        <div class="space-y-1 text-center">
-          <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
-            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-          </svg>
-          <div class="flex text-sm text-gray-600">
-            <label for="file-upload" class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
-              <span>Upload a video</span>
-              <input id="file-upload" name="file-upload" type="file" class="sr-only" accept="video/*" @change="handleFileSelect" ref="fileInput">
-            </label>
-            <p class="pl-1">or drag and drop</p>
+  <div class="min-h-screen flex items-center justify-center bg-slate-950 px-4 overflow-hidden relative selection:bg-indigo-500 selection:text-white">
+      <!-- Background subtle elements -->
+      <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-indigo-900/20 rounded-full blur-[120px] pointer-events-none"></div>
+
+      <div class="max-w-2xl w-full space-y-12 relative z-10 transition-all duration-1000 ease-out transform translate-y-0 opacity-100">
+          <div class="text-center space-y-4">
+               <h2 class="text-5xl md:text-7xl font-serif font-bold text-transparent bg-clip-text bg-linear-to-b from-white to-slate-400 tracking-tight leading-tight drop-shadow-sm">
+                  Your Personal<br>AI Stylist
+               </h2>
+               <p class="text-lg md:text-xl text-indigo-200 font-light tracking-wide max-w-lg mx-auto font-sans">
+                   Unlock your wardrobe's potential with Gemini 3. Upload a video to get started.
+               </p>
           </div>
-          <p class="text-xs text-gray-500">MP4, MOV up to 50MB</p>
-        </div>
-      </div>
 
-      <div v-if="selectedFile" class="text-sm text-gray-700 bg-gray-100 p-2 rounded">
-        Selected: {{ selectedFile.name }}
-        <button @click.stop="analyzeVideo" class="mt-2 w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-            {{ store.loading ? 'Analyzing...' : 'Analyze Wardrobe' }}
-        </button>
-      </div>
+          <!-- Glassmorphism Drop Zone -->
+          <div
+              class="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl transition-all duration-300 hover:border-indigo-400/50 hover:bg-white/10 cursor-pointer shadow-2xl"
+              @dragover.prevent
+              @drop.prevent="handleDrop"
+              @click="triggerFileInput"
+          >
+               <div class="absolute inset-0 bg-linear-to-br from-indigo-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+               
+               <div class="relative py-16 px-6 text-center space-y-6">
+                    <div class="mx-auto w-16 h-16 rounded-full bg-white/10 flex items-center justify-center shadow-lg border border-white/5 group-hover:scale-110 transition-transform duration-300">
+                         <svg class="w-8 h-8 text-indigo-300 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                    </div>
+                    
+                    <div class="space-y-2">
+                        <div class="font-medium text-white group-hover:text-indigo-300 transition-colors">
+                             <span class="text-2xl font-serif block mb-1">Upload Video</span>
+                             <span class="text-sm font-sans text-slate-400 font-normal">or drag and drop</span>
+                             <!-- Input hidden, triggered by wrapper click -->
+                             <input 
+                                id="file-upload" 
+                                name="file-upload" 
+                                type="file" 
+                                class="sr-only" 
+                                accept="video/*" 
+                                @click.stop 
+                                @change="handleFileSelect" 
+                                ref="fileInput"
+                             >
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-500 uppercase tracking-widest">MP4, MOV up to 50MB</p>
+               </div>
+          </div>
 
-      <div class="relative">
-        <div class="absolute inset-0 flex items-center">
-          <div class="w-full border-t border-gray-300"></div>
-        </div>
-        <div class="relative flex justify-center text-sm">
-          <span class="px-2 bg-white text-gray-500">Or for judges</span>
-        </div>
-      </div>
+          <div v-if="selectedFile" class="transition-all duration-500 p-4 rounded-xl bg-indigo-900/30 border border-indigo-500/30 backdrop-blur-md flex items-center justify-between shadow-lg">
+             <div class="flex items-center gap-3">
+                 <div class="w-2.5 h-2.5 rounded-full bg-indigo-400 animate-pulse"></div>
+                 <span class="text-indigo-100 text-sm truncate font-medium max-w-[200px]">{{ selectedFile.name }}</span>
+             </div>
+             <button 
+                @click.stop="analyzeVideo" 
+                class="px-6 py-2.5 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium shadow-lg shadow-indigo-600/30 transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed border border-indigo-400/20"
+                :disabled="store.loading"
+             >
+                 {{ store.loading ? store.loadingMessage || 'Analyzing...' : 'Analyze Wardrobe' }}
+             </button>
+          </div>
 
-      <div>
-        <button 
-          @click="startDemo"
-          class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-        >
-          Try Demo (Judges)
-        </button>
+          <div class="space-y-6 pt-4">
+               <div class="flex items-center gap-4">
+                   <div class="h-px flex-1 bg-linear-to-r from-transparent via-slate-700 to-transparent"></div>
+                   <span class="text-xs text-slate-600 font-medium uppercase tracking-widest">For Judges</span>
+                   <div class="h-px flex-1 bg-linear-to-r from-transparent via-slate-700 to-transparent"></div>
+               </div>
+
+               <button
+                  @click="startDemo"
+                  class="w-full relative group overflow-hidden rounded-xl bg-linear-to-r from-amber-400 via-orange-500 to-amber-600 p-5 text-center shadow-lg shadow-amber-500/20 transition-transform duration-300 hover:-translate-y-1 hover:shadow-amber-500/40 border border-white/10"
+               >
+                  <div class="absolute inset-0 bg-white/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  <span class="relative text-white font-bold tracking-wide text-lg text-shadow flex items-center justify-center gap-3 font-serif">
+                       ✨ Try Judge Demo Mode
+                  </span>
+               </button>
+          </div>
       </div>
-    </div>
   </div>
 </template>
 
@@ -67,11 +94,15 @@ const fileInput = ref(null)
 const selectedFile = ref(null)
 
 const triggerFileInput = () => {
-  fileInput.value.click()
+  if (fileInput.value) {
+    fileInput.value.click()
+  }
 }
 
 const handleFileSelect = (event) => {
-  selectedFile.value = event.target.files[0]
+  if (event.target.files.length > 0) {
+    selectedFile.value = event.target.files[0]
+  }
 }
 
 const handleDrop = (event) => {

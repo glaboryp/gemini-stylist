@@ -6,20 +6,43 @@ export const useWardrobeStore = defineStore('wardrobe', {
   state: () => ({
     inventory: [],
     loading: false,
+    loadingMessage: "Analyzing...",
     error: null,
-    messages: []
+    messages: [],
+    videoUrl: null
   }),
   actions: {
     loadDemoData() {
+      // Use the verified, rich mock data directly
       this.inventory = mockInventory;
+      this.videoUrl = null; // No video in demo mode
       this.messages.push({
-        role: 'system',
-        content: 'Demo Mode activated. I have analyzed your simulated wardrobe. What do you need today?'
+        role: 'model',
+        content: 'Demo Mode activated. I see your simulated wardrobe. Ask me for an outfit!'
       });
     },
     async analyzeVideo(file) {
       this.loading = true;
       this.error = null;
+      this.messages = []; // Clear previous chat
+      // Create a local URL for the video file to allow playback
+      if (this.videoUrl) URL.revokeObjectURL(this.videoUrl); // Cleanup old
+      this.videoUrl = URL.createObjectURL(file);
+      
+      const loadingMessages = [
+        "Detecting fabrics...",
+        "Analyzing color palette...",
+        "Consulting fashion trends...",
+        "Identifying items..."
+      ];
+      let msgIndex = 0;
+      this.loadingMessage = loadingMessages[0];
+      
+      const interval = setInterval(() => {
+        msgIndex = (msgIndex + 1) % loadingMessages.length;
+        this.loadingMessage = loadingMessages[msgIndex];
+      }, 2000);
+
       try {
         const formData = new FormData();
         formData.append('file', file);
@@ -31,29 +54,56 @@ export const useWardrobeStore = defineStore('wardrobe', {
           }
         });
 
+        clearInterval(interval);
+
         if (response.data && response.data.inventory) {
           this.inventory = response.data.inventory;
-          this.messages.push({
-            role: 'system',
-            content: 'Video analysis complete. I have detected your clothing items.'
-          });
+          
+          if (response.data.welcome_message) {
+            this.messages.push({
+                role: 'model',
+                content: response.data.welcome_message
+            });
+          }
+           if (response.data.suggestion_starter) {
+            this.messages.push({
+                role: 'model',
+                content: `💡 Hint: ${response.data.suggestion_starter}`
+            });
+          }
         }
       } catch (err) {
+        clearInterval(interval);
         console.error(err);
-        this.error = "Error analyzing video.";
+        this.error = "Error analyzing video. Please try again.";
       } finally {
         this.loading = false;
       }
     },
     async sendMessage(text) {
-        // Mock chat response for now, or call another endpoint if implemented
+        // Optimistic UI update
         this.messages.push({ role: 'user', content: text });
         
-        // Simple heuristic response
-        setTimeout(() => {
-            const response = "Got it! Based on your wardrobe, I suggest pairing the top with something neutral.";
-            this.messages.push({ role: 'system', content: response });
-        }, 1000);
+        try {
+            const payload = {
+                user_message: text,
+                chat_history: this.messages.slice(0, -1), // Send history excluding the new message
+                inventory_context: this.inventory
+            };
+            
+            const response = await axios.post('http://localhost:8000/api/chat', payload);
+            
+            if (response.data && response.data.text) {
+                 this.messages.push({ 
+                     role: 'model', 
+                     content: response.data.text,
+                     sources: response.data.sources // Store sources if we want to display them later
+                 });
+            }
+        } catch (err) {
+             console.error("Chat error", err);
+             this.messages.push({ role: 'model', content: "Sorry, I'm having trouble connecting to the stylist brain right now." });
+        }
     }
   }
 })

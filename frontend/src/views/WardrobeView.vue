@@ -1,80 +1,78 @@
 <template>
-  <div class="min-h-screen bg-gray-100 flex flex-col md:flex-row">
-    <!-- Main Content: Wardrobe Grid -->
-    <main class="flex-1 p-6 overflow-y-auto h-screen">
-      <div class="mb-6 flex justify-between items-center">
-        <h1 class="text-2xl font-bold text-gray-900">Your Digital Wardrobe</h1>
-        <button @click="$router.push('/')" class="text-indigo-600 hover:text-indigo-800">Back</button>
+  <div class="h-screen bg-premium-bg font-sans text-slate-800 relative overflow-hidden flex flex-col">
+    <header class="bg-white/80 backdrop-blur-md sticky top-0 z-10 border-b border-slate-100 px-6 py-4 flex justify-between items-center shadow-sm h-16 shrink-0">
+      <div class="flex items-center gap-3">
+        <span class="text-2xl">✨</span>
+        <h1 class="text-2xl font-serif font-bold tracking-tight text-slate-900">Gemini Stylist</h1>
       </div>
-      
-      <div v-if="store.inventory.length === 0" class="text-center py-20 text-gray-500">
-        No clothing items loaded.
-      </div>
+      <button @click="$router.push('/')" class="text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors uppercase tracking-wider">
+        Back to Upload
+      </button>
+    </header>
 
-      <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div v-for="item in store.inventory" :key="item.id" class="bg-white rounded-lg shadow overflow-hidden hover:shadow-lg transition-shadow">
-          <div class="h-48 bg-gray-200 flex items-center justify-center">
-             <!-- Placeholder for image since we don't have cropped images yet -->
-             <span class="text-4xl">👕</span>
+    <div class="flex-1 flex overflow-hidden">
+      <main class="w-full lg:w-[90%] overflow-y-auto p-6 lg:p-10 scroll-smooth border-r border-slate-200">
+        <div class="max-w-4xl mx-auto">
+          <div class="mb-8">
+            <h2 class="text-4xl font-serif font-medium text-slate-900 mb-2">My Collection</h2>
+            <p class="text-slate-500 font-light">
+              {{ store.inventory.length }} items curated by AI
+            </p>
           </div>
-          <div class="p-4">
-            <h3 class="text-lg font-medium text-gray-900">{{ item.subtype }} {{ item.primary_color }}</h3>
-            <p class="text-sm text-gray-500">{{ item.season }} • {{ item.patterns }}</p>
-            <div class="mt-2 flex flex-wrap gap-1">
-                <span v-for="tag in item.search_tags" :key="tag" class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800">
-                    {{ tag }}
-                </span>
-            </div>
-            <div class="mt-2 text-xs text-gray-400">
-                Formality: {{ item.formality }}/10
-            </div>
-          </div>
-        </div>
-      </div>
-    </main>
 
-    <!-- Sidebar: Chat -->
-    <aside class="w-full md:w-96 bg-white border-l border-gray-200 flex flex-col h-screen">
-      <div class="p-4 border-b border-gray-200 bg-indigo-600 text-white">
-        <h2 class="text-lg font-semibold">Gemini Stylist Chat</h2>
-        <p class="text-xs opacity-80">Ask me for an outfit for an occasion.</p>
-      </div>
-      
-      <div class="flex-1 p-4 overflow-y-auto space-y-4" id="chat-container">
-        <div v-for="(msg, index) in store.messages" :key="index" :class="['flex', msg.role === 'user' ? 'justify-end' : 'justify-start']">
-          <div :class="['max-w-xs rounded-lg px-4 py-2 text-sm', msg.role === 'user' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-900']">
-            {{ msg.content }}
+          <div v-if="store.inventory.length === 0" class="flex flex-col items-center justify-center py-32 text-slate-400">
+            <svg class="w-16 h-16 mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+            <p class="text-lg font-light">Your wardrobe is empty.</p>
+          </div>
+
+          <div v-else class="grid grid-cols-2 md:grid-cols-3 gap-6 auto-rows-fr">
+            <WardrobeItemCard 
+                v-for="item in store.inventory" 
+                :key="item.id" 
+                :item="item"
+                @play-video="handleJumpToVideo"
+            />
           </div>
         </div>
-      </div>
-
-      <div class="p-4 border-t border-gray-200">
-        <form @submit.prevent="sendMessage" class="flex gap-2">
-          <input 
-            v-model="newMessage" 
-            type="text" 
-            placeholder="Ex: Outfit for a dinner..." 
-            class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
-          >
-          <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700">
-            Send
-          </button>
-        </form>
-      </div>
-    </aside>
+      </main>
+        
+      <ChatPanel />
+    </div>
+    
+    <VideoModal 
+      ref="videoModalRef"
+      :is-open="isVideoModalOpen" 
+      :video-url="store.videoUrl"
+      @close="isVideoModalOpen = false"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, nextTick } from 'vue'
 import { useWardrobeStore } from '../stores/wardrobe'
+import { useRouter } from 'vue-router'
+import WardrobeItemCard from '../components/WardrobeItemCard.vue'
+import ChatPanel from '../components/ChatPanel.vue'
+import VideoModal from '../components/VideoModal.vue'
 
+const router = useRouter()
 const store = useWardrobeStore()
-const newMessage = ref('')
 
-const sendMessage = async () => {
-    if (!newMessage.value.trim()) return;
-    await store.sendMessage(newMessage.value);
-    newMessage.value = '';
+const isVideoModalOpen = ref(false)
+const videoModalRef = ref(null)
+
+const handleJumpToVideo = async (seconds) => {
+  if (!store.videoUrl) {
+    if (seconds > 0 && !store.videoUrl) {
+        alert("Video playback is only available for uploaded videos, not in demo mode.");
+        return;
+    }
+  }
+  isVideoModalOpen.value = true;
+  await nextTick();
+  if (videoModalRef.value) {
+    await videoModalRef.value.seekAndPlay(seconds);
+  }
 }
 </script>
