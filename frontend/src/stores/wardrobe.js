@@ -9,7 +9,8 @@ export const useWardrobeStore = defineStore('wardrobe', {
     loadingMessage: "Analyzing...",
     error: null,
     messages: [],
-    videoUrl: null
+    videoUrl: null,
+    highlightedItems: []
   }),
   actions: {
     loadDemoData() {
@@ -80,9 +81,14 @@ export const useWardrobeStore = defineStore('wardrobe', {
         this.loading = false;
       }
     },
+    highlightItems(ids) {
+      this.highlightedItems = ids || [];
+    },
     async sendMessage(text) {
         // Optimistic UI update
         this.messages.push({ role: 'user', content: text });
+        // Clear previous highlights
+        this.highlightedItems = [];
         
         try {
             const payload = {
@@ -93,12 +99,20 @@ export const useWardrobeStore = defineStore('wardrobe', {
             
             const response = await axios.post('http://localhost:8000/api/chat', payload);
             
-            if (response.data && response.data.text) {
-                 this.messages.push({ 
+            if (response.data) {
+                // Determine text content
+                const content = response.data.text || "I'm not sure what to say.";
+                
+                this.messages.push({ 
                      role: 'model', 
-                     content: response.data.text,
+                     content: content,
                      sources: response.data.sources // Store sources if we want to display them later
                  });
+
+                 // Handle highlights
+                 if (response.data.related_item_ids && Array.isArray(response.data.related_item_ids)) {
+                     this.highlightItems(response.data.related_item_ids);
+                 }
             }
         } catch (err) {
              console.error("Chat error", err);

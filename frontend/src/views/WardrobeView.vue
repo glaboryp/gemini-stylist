@@ -49,7 +49,7 @@
 </template>
 
 <script setup>
-import { ref, nextTick } from 'vue'
+import { ref, nextTick, watch } from 'vue'
 import { useWardrobeStore } from '../stores/wardrobe'
 import { useRouter } from 'vue-router'
 import WardrobeItemCard from '../components/WardrobeItemCard.vue'
@@ -73,6 +73,18 @@ const handleJumpToVideo = async (seconds) => {
   await nextTick();
   if (videoModalRef.value) {
     await videoModalRef.value.seekAndPlay(seconds);
-  }
+    }
 }
+
+// Watch for highlighted items to scroll into view
+watch(() => store.highlightedItems, async (newItems) => {
+    if (newItems && newItems.length > 0) {
+        await nextTick();
+        const firstId = newItems[0];
+        const element = document.getElementById(`item-${firstId}`);
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
+}, { deep: true });
 </script>

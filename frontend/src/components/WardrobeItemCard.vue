@@ -1,6 +1,10 @@
 <template>
   <div 
-    class="group relative bg-white rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ease-out overflow-hidden border border-slate-50 flex flex-col"
+    :class="[
+      'group relative bg-white rounded-2xl shadow-sm transition-all duration-300 ease-out overflow-hidden border flex flex-col',
+      isHighlighted ? 'border-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.5)] ring-2 ring-amber-100 scale-[1.02]' : 'border-slate-50 hover:shadow-xl hover:-translate-y-1'
+    ]"
+    :id="'item-' + item.id"
   >
     <!-- Color Indicator (Border visual) -->
     <div class="absolute top-0 inset-x-0 h-1" :style="{ backgroundColor: getValidColor(item.primary_color) }"></div>
@@ -49,7 +53,10 @@
 </template>
 
 <script setup>
-defineProps({
+import { computed } from 'vue'
+import { useWardrobeStore } from '../stores/wardrobe'
+
+const props = defineProps({
   item: {
     type: Object,
     required: true
@@ -57,6 +64,12 @@ defineProps({
 })
 
 defineEmits(['play-video'])
+
+const store = useWardrobeStore()
+
+const isHighlighted = computed(() => {
+    return store.highlightedItems.includes(props.item.id)
+})
 
 const getValidColor = (colorName) => {
     if (!colorName) return '#e2e8f0';

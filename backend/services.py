@@ -11,8 +11,6 @@ GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 if not GEMINI_API_KEY:
     print("WARNING: GEMINI_API_KEY not found in environment variables.")
 
-MODEL_ID = "gemini-3-flash-preview"
-
 try:
     client = genai.Client(api_key=GEMINI_API_KEY)
 except Exception as e:
@@ -112,13 +110,24 @@ def chat_with_stylist_service(user_message: str, chat_history: list, inventory_c
     # Translated prompt from user request:
     # "Eres un estilista personal. Tienes acceso al siguiente inventario de ropa del usuario: {INVENTORY_JSON}. 
     # Usa estas prendas para crear outfits. Si el usuario pide comprar algo nuevo que combine, 
-    # USA LA HERRAMIENTA DE BÚSQUEDA para encontrar enlaces reales de compra."
+    # USA LA HERRAMIENTA DE BÚSQUEDA para encontrar enlaces reales de compra.
+    # IMPORTANTE: Tu respuesta debe ser un objeto JSON con la estructura:
+    # {
+    #   "text": "Tu respuesta natural y amable aquí (NO uses IDs técnicos como Item_XXX en este texto)",
+    #   "related_item_ids": ["Item_001", "Item_004"] (Lista de IDs de items mencionados o relevantes)
+    # }"
     system_instruction = f"""
     You are a personal stylist. You have access to the following user wardrobe inventory: 
     {inventory_json}
     
     Use these items to create outfits. If the user asks to buy something new that matches, 
     USE THE SEARCH TOOL to find real shopping links.
+
+    IMPORTANT: You must return a valid JSON object with the following structure:
+    {{
+      "text": "Your natural, friendly response here. Do NOT mention technical IDs (like item_01) in this text.",
+      "related_item_ids": ["item_id_1", "item_id_2"] // List of item IDs referenced in your response
+    }}
     """
 
     # Construct contents
@@ -142,11 +151,12 @@ def chat_with_stylist_service(user_message: str, chat_history: list, inventory_c
 
     try:
         response = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-3-flash-preview",
             contents=contents,
             config=types.GenerateContentConfig(
                 tools=[google_search_tool],
-                system_instruction=system_instruction
+                system_instruction=system_instruction,
+                response_mime_type="application/json"
             )
         )
         
@@ -161,9 +171,20 @@ def chat_with_stylist_service(user_message: str, chat_history: list, inventory_c
                              "title": chunk.web.title,
                              "uri": chunk.web.uri
                          })
+        
+        # Parse the JSON response from Gemini
+        try:
+            parsed_response = json.loads(response.text)
+            text_response = parsed_response.get("text", "I found some items for you.")
+            related_ids = parsed_response.get("related_item_ids", [])
+        except json.JSONDecodeError:
+            # Fallback if raw text is returned
+            text_response = response.text
+            related_ids = []
 
         return {
-            "text": response.text,
+            "text": text_response,
+            "related_item_ids": related_ids,
             "sources": sources
         }
 
