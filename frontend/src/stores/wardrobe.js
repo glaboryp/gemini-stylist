@@ -2,6 +2,8 @@ import { defineStore } from 'pinia'
 import axios from 'axios'
 import { mockInventory } from '../data/mock'
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
 export const useWardrobeStore = defineStore('wardrobe', {
   state: () => ({
     inventory: [],
@@ -116,7 +118,7 @@ export const useWardrobeStore = defineStore('wardrobe', {
         }
 
         // Point to backend URL
-        const response = await axios.post('http://localhost:8000/analyze-video', formData, {
+        const response = await axios.post(`${API_URL}/analyze-video`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
@@ -196,7 +198,7 @@ export const useWardrobeStore = defineStore('wardrobe', {
                 lon: this.userLocation.lon
             };
             
-            const response = await axios.post('http://localhost:8000/api/chat', payload);
+            const response = await axios.post(`${API_URL}/api/chat`, payload);
             
             if (response.data) {
                 // Determine text content

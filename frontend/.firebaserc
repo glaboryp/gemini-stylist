@@ -1,0 +1,15 @@
+{
+  "projects": {
+    "default": "gen-lang-client-0238866347"
+  },
+  "targets": {
+    "gen-lang-client-0238866347": {
+      "hosting": {
+        "app-demo": [
+          "gemini-stylist-demo"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}

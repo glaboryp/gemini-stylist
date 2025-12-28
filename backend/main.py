@@ -19,9 +19,11 @@ app = FastAPI(lifespan=lifespan)
 
 # CORS Configuration
 origins = [
-    "http://localhost:5173",  # Vue frontend default
+    "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "*" # For hackathon demo ease
+    "https://gen-lang-client-0238866347.web.app", # Firebase Origin
+    "https://gemini-stylist-demo.web.app", # New Firebase Demo Origin
+    "*"
 ]
 
 app.add_middleware(
