@@ -1,6 +1,6 @@
 import shutil
 import os
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from services import analyze_video_service, chat_with_stylist_service
@@ -37,7 +37,11 @@ def read_root():
     return {"message": "Gemini Stylist Backend API"}
 
 @app.post("/analyze-video")
-async def analyze_video(file: UploadFile = File(...)):
+async def analyze_video(
+    file: UploadFile = File(...),
+    lat: Optional[float] = Form(None),
+    lon: Optional[float] = Form(None)
+):
     temp_file_path = f"temp_uploads/{file.filename}"
     
     # Save uploaded file
@@ -46,7 +50,7 @@ async def analyze_video(file: UploadFile = File(...)):
         
     try:
         # Call Gemini Service
-        result = analyze_video_service(temp_file_path)
+        result = analyze_video_service(temp_file_path, lat, lon)
         print(f"Service Result: {result}")
         return result
     except Exception as e:

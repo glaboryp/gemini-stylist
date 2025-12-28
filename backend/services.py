@@ -52,7 +52,61 @@ Return ONLY a valid JSON object with the following structure:
 Do not add markdown or explanatory text before or after the JSON.
 """
 
-def analyze_video_service(video_path: str):
+
+
+def generate_style_persona(inventory: list, lat: float = None, lon: float = None):
+    """
+    Generates a high-fashion 'Style Persona' analysis using Gemini.
+    """
+    if not client: return None
+    
+    weather_context = ""
+    if lat and lon:
+         weather_info = get_current_weather(lat, lon)
+         if weather_info:
+             weather_context = f"User Location Weather: {weather_info}. Adapt the analysis to this climate."
+
+    inventory_json = json.dumps(inventory, indent=2)
+
+    prompt = f"""
+    You are a Senior Fashion Editor for Vogue or GQ. You have just viewed the user's wardrobe inventory:
+    {inventory_json}
+    
+    {weather_context}
+    
+    YOUR TASK:
+    Create a "Style Persona Diagnosis" that feels premium, insightful, and exciting.
+    
+    1. **Coherence Analysis**: Define their vibe (e.g., "Effortless Minimalist", "Boho-Chic Explorer", "Urban Technical").
+    2. **Color Palette**: Identify the dominant color story.
+    3. **Trend Spotting**: CONNECT TO REAL-WORLD 2024/2025 TRENDS. Use Google Search to mention specific trends (e.g., "This matches the current 'Eclectic Grandpa' trend" or "'Office Siren' aesthetics").
+    4. **Climate Check**: If weather is provided, mention how ready they are.
+
+    OUTPUT FORMAT:
+    Return strictly JSON.
+    {{
+      "text": "Your rich, markdown-formatted analysis here. Use bolding, emojis. Make it sound like a magazine feature.",
+      "related_item_ids": ["id_of_iconic_item_1", "id_of_iconic_item_2"]
+    }}
+    """
+    
+    try:
+        google_search_tool = types.Tool(google_search=types.GoogleSearch())
+        
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                tools=[google_search_tool],
+                response_mime_type="application/json"
+            )
+        )
+        return clean_and_parse_json(response.text)
+    except Exception as e:
+        print(f"Persona Generation Error: {e}")
+        return None
+
+def analyze_video_service(video_path: str, lat: float = None, lon: float = None):
     print(f"Uploading file: {video_path}")
     try:
         video_file = client.files.upload(file=video_path)
@@ -91,7 +145,21 @@ def analyze_video_service(video_path: str):
         )
     )
 
-    return json.loads(response.text)
+    initial_result = json.loads(response.text)
+    
+    # ENHANCEMENT: Generate Style Persona
+    if "inventory" in initial_result:
+        print("Generating Stylist Persona...")
+        persona = generate_style_persona(initial_result["inventory"], lat, lon)
+        if persona and "text" in persona:
+            # Replace the simple welcome message with the rich persona analysis
+            initial_result["welcome_message"] = persona["text"]
+            # Optionally merge related IDs or just keep them for the welcome message context
+            # We don't have a specific field for welcome highlights in the standard response, 
+            # but we can rely on the frontend handling 'related_item_ids' if we passed them.
+            # For now, let's just make sure the 'welcome_message' is updated.
+    
+    return initial_result
 
 def clean_and_parse_json(response_text):
     # Try to find JSON block enclosed in markdown code formatting

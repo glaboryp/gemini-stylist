@@ -108,6 +108,12 @@ export const useWardrobeStore = defineStore('wardrobe', {
       try {
         const formData = new FormData();
         formData.append('file', file);
+        
+        // Add location for Style Persona
+        if (this.userLocation.lat && this.userLocation.lon) {
+            formData.append('lat', this.userLocation.lat);
+            formData.append('lon', this.userLocation.lon);
+        }
 
         // Point to backend URL
         const response = await axios.post('http://localhost:8000/analyze-video', formData, {
