@@ -8,7 +8,7 @@ export const mockInventory = [
     season: "Transitional",
     formality: 3,
     search_tags: ["stripes", "casual", "cotton", "nautical"],
-    emoji: "�",
+    emoji: "👕",
     timestamp_seconds: 1
   },
   {
@@ -20,7 +20,7 @@ export const mockInventory = [
     season: "Summer",
     formality: 5,
     search_tags: ["lace", "boho", "feminine", "delicate"],
-    emoji: "�",
+    emoji: "👚",
     timestamp_seconds: 5
   },
   {
@@ -44,7 +44,7 @@ export const mockInventory = [
     season: "Transitional",
     formality: 4,
     search_tags: ["denim", "dark wash", "everyday", "staple"],
-    emoji: "�",
+    emoji: "👖",
     timestamp_seconds: 15
   },
   {
@@ -56,7 +56,7 @@ export const mockInventory = [
     season: "Transitional",
     formality: 5,
     search_tags: ["olive", "earthy", "casual", "khakis"],
-    emoji: "�",
+    emoji: "👖",
     timestamp_seconds: 22
   },
   {
