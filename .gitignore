@@ -41,3 +41,5 @@ check_models.py
 
 # Project Specific
 temp_uploads/
+
+DEPLOYMENT.md
