@@ -44,6 +44,8 @@ const props = defineProps({
   }
 })
 
+const errorCount = ref(0)
+
 const getDomain = (uri, title = '') => {
     try {
         const url = new URL(uri);
@@ -75,11 +77,11 @@ const logoUrl = computed(() => {
     if (!domain) return '';
 
     if (errorCount.value === 0) {
-        // Strategy 1: Clearbit Logo API
-        return `https://logo.clearbit.com/${domain}`;
-    } else if (errorCount.value === 1) {
-        // Strategy 2: Google Favicon (high res)
+        // Strategy 1: Google Favicon (high res) - Most reliable so far
         return `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
+    } else if (errorCount.value === 1) {
+        // Strategy 2: Clearbit Logo API (Backup)
+        return `https://logo.clearbit.com/${domain}`;
     } else {
         // Fallback or empty
         return ''; 

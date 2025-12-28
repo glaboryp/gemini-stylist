@@ -11,7 +11,7 @@
     </header>
 
     <div class="flex-1 flex overflow-hidden">
-      <main class="w-full lg:w-[90%] overflow-y-auto p-6 lg:p-10 scroll-smooth border-r border-slate-200">
+      <main class="w-full overflow-y-auto p-6 lg:p-10 scroll-smooth border-r border-slate-200">
         <div class="max-w-4xl mx-auto">
           <div class="mb-8">
             <h2 class="text-4xl font-serif font-medium text-slate-900 mb-2">My Collection</h2>
