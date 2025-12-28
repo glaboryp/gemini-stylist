@@ -138,6 +138,11 @@ const store = useWardrobeStore()
 const fileInput = ref(null)
 const selectedFile = ref(null)
 
+
+
+// Initialize location
+store.getUserLocation();
+
 // UX State
 const videoPreviewUrl = ref(null)
 const progress = ref(0)

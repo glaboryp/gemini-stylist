@@ -10,7 +10,8 @@ export const useWardrobeStore = defineStore('wardrobe', {
     error: null,
     messages: [],
     videoUrl: null,
-    highlightedItems: []
+    highlightedItems: [],
+    userLocation: { lat: null, lon: null }
   }),
   actions: {
     loadDemoData() {
@@ -80,6 +81,23 @@ export const useWardrobeStore = defineStore('wardrobe', {
     highlightItems(ids) {
       this.highlightedItems = ids || [];
     },
+    getUserLocation() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    this.userLocation = {
+                        lat: position.coords.latitude,
+                        lon: position.coords.longitude
+                    };
+                    console.log("Location access granted");
+                },
+                (error) => {
+                    console.log("Location access denied or error:", error.message);
+                    // Fail silently as per requirements
+                }
+            );
+        }
+    },
     async sendMessage(text) {
         // Optimistic UI update
         this.messages.push({ role: 'user', content: text });
@@ -90,7 +108,9 @@ export const useWardrobeStore = defineStore('wardrobe', {
             const payload = {
                 user_message: text,
                 chat_history: this.messages.slice(0, -1), // Send history excluding the new message
-                inventory_context: this.inventory
+                inventory_context: this.inventory,
+                lat: this.userLocation.lat,
+                lon: this.userLocation.lon
             };
             
             const response = await axios.post('http://localhost:8000/api/chat', payload);

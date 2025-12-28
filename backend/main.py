@@ -61,6 +61,8 @@ class ChatRequest(BaseModel):
     user_message: str
     chat_history: List[dict]
     inventory_context: List[dict]
+    lat: Optional[float] = None
+    lon: Optional[float] = None
 
 @app.post("/api/chat")
 async def chat(request: ChatRequest):
@@ -68,7 +70,9 @@ async def chat(request: ChatRequest):
         response = chat_with_stylist_service(
             user_message=request.user_message,
             chat_history=request.chat_history,
-            inventory_context=request.inventory_context
+            inventory_context=request.inventory_context,
+            lat=request.lat,
+            lon=request.lon
         )
         return response
     except Exception as e:

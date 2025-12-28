@@ -5,6 +5,7 @@ import re
 from google import genai
 from google.genai import types
 from dotenv import load_dotenv
+import requests
 
 load_dotenv()
 
@@ -116,7 +117,47 @@ def clean_and_parse_json(response_text):
         # If we can't parse JSON, we assume the model just chatted.
         return {"text": response_text, "related_item_ids": []}
 
-def chat_with_stylist_service(user_message: str, chat_history: list, inventory_context: list):
+def get_current_weather(lat: float, lon: float):
+    """
+    Fetches current weather from Open-Meteo API.
+    Returns a string description like "Rainy, 15°C" or None if failed.
+    """
+    try:
+        url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,weather_code&timezone=auto"
+        response = requests.get(url, timeout=5)
+        data = response.json()
+        
+        if "current" in data:
+            temp = data["current"]["temperature_2m"]
+            code = data["current"]["weather_code"]
+            
+            # WMO Weather interpretation codes (simplified)
+            # 0: Clear sky
+            # 1, 2, 3: Mainly clear, partly cloudy, and overcast
+            # 45, 48: Fog
+            # 51, 53, 55: Drizzle
+            # 61, 63, 65: Rain
+            # 71, 73, 75: Snow
+            # 80, 81, 82: Rain showers
+            # 95, 96, 99: Thunderstorm
+            
+            condition = "Unknown"
+            if code == 0: condition = "Clear sky"
+            elif code in [1, 2, 3]: condition = "Cloudy"
+            elif code in [45, 48]: condition = "Foggy"
+            elif code in [51, 53, 55, 61, 63, 65, 80, 81, 82]: condition = "Rainy"
+            elif code in [71, 73, 75, 77, 85, 86]: condition = "Snowy"
+            elif code in [95, 96, 99]: condition = "Thunderstorm"
+            
+            return f"{condition}, {temp}°C"
+            
+    except Exception as e:
+        print(f"Weather Fetch Error: {e}")
+        return None
+    
+    return None
+
+def chat_with_stylist_service(user_message: str, chat_history: list, inventory_context: list, lat: float = None, lon: float = None):
     """
     Handles chat interaction with Google Search Grounding.
     user_message: The current user message
@@ -126,6 +167,14 @@ def chat_with_stylist_service(user_message: str, chat_history: list, inventory_c
     if not client:
         raise ValueError("GenAI client not initialized.")
 
+    # 1. Fetch Weather Context if location available
+    weather_context = ""
+    if lat and lon:
+        weather_info = get_current_weather(lat, lon)
+        if weather_info:
+             weather_context = f"User Location Weather: {weather_info}"
+             print(f"Weather Context: {weather_context}")
+
     # Construct context from inventory
     # Using JSON string representation as requested by the prompt structure requirement
     inventory_json = json.dumps(inventory_context, indent=2)
@@ -134,8 +183,12 @@ def chat_with_stylist_service(user_message: str, chat_history: list, inventory_c
     You are a personal stylist. You have access to the following user wardrobe inventory: 
     {inventory_json}
     
-    Use these items to create outfits. If the user asks to buy something new that matches, 
-    USE THE SEARCH TOOL to find real shopping links.
+    {weather_context}
+    
+    INSTRUCTIONS:
+    1. Use these items to create outfits. 
+    2. If weather context is provided above, you MUST adapt your recommendations (e.g., layers for cold, breathable for heat) and mention the weather explicitly in your reasoning.
+    3. If the user asks to buy something new that matches, USE THE SEARCH TOOL to find real shopping links.
 
     IMPORTANT: You must answer strictly in a valid JSON format. Do not include any conversational text outside the JSON object. 
     The structure must be: {{"text": "...", "related_item_ids": [...]}}.
