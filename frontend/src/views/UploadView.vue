@@ -60,8 +60,26 @@
                 @click.stop="analyzeVideo" 
                 class="px-6 py-2.5 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium shadow-lg shadow-indigo-600/30 transition-all hover:scale-105 active:scale-95 border border-indigo-400/20 cursor-pointer"
              >
-                 Analyze Wardrobe
+                 {{ store.inventory.length > 0 ? 'Add to Wardrobe' : 'Analyze Wardrobe' }}
              </button>
+          </div>
+
+          <!-- Continue Workflow (Persistence) -->
+          <div v-if="store.inventory.length > 0 && !selectedFile" class="text-center space-y-4">
+              <button 
+                  @click="router.push('/wardrobe')"
+                  class="bg-white text-indigo-900 px-8 py-3 rounded-full font-bold shadow-lg hover:bg-indigo-50 transition-all hover:scale-105 active:scale-95 flex items-center gap-2 mx-auto cursor-pointer"
+              >
+                  <span>Continue with {{ store.inventory.length }} items</span>
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+              </button>
+              
+              <button 
+                  @click="store.clearWardrobe()"
+                  class="text-xs text-slate-500 hover:text-white underline decoration-slate-600 underline-offset-4 transition-colors cursor-pointer"
+              >
+                  Reset / Clear Data
+              </button>
           </div>
 
 
@@ -140,7 +158,8 @@ const selectedFile = ref(null)
 
 
 
-// Initialize location
+// Initialize
+store.loadState(); 
 store.getUserLocation();
 
 // UX State

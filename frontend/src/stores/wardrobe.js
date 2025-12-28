@@ -11,9 +11,23 @@ export const useWardrobeStore = defineStore('wardrobe', {
     messages: [],
     videoUrl: null,
     highlightedItems: [],
-    userLocation: { lat: null, lon: null }
+    userLocation: { lat: null, lon: null },
+    weather: null // { temp: number, description: string, code: number }
   }),
   actions: {
+    // Persistence Helper
+    saveState() {
+        localStorage.setItem('gemini_wardrobe_inventory', JSON.stringify(this.inventory));
+        localStorage.setItem('gemini_wardrobe_location', JSON.stringify(this.userLocation));
+    },
+    loadState() {
+        const storedInventory = localStorage.getItem('gemini_wardrobe_inventory');
+        if (storedInventory) this.inventory = JSON.parse(storedInventory);
+        
+        const storedLocation = localStorage.getItem('gemini_wardrobe_location');
+        if (storedLocation) this.userLocation = JSON.parse(storedLocation);
+    },
+    
     loadDemoData() {
       // Use the verified, rich mock data directly
       this.inventory = mockInventory;
@@ -22,7 +36,54 @@ export const useWardrobeStore = defineStore('wardrobe', {
         role: 'model',
         content: 'Demo Mode activated. I see your simulated wardrobe. Ask me for an outfit!'
       });
+      this.saveState();
     },
+    
+    clearWardrobe() {
+        this.inventory = [];
+        this.messages = [];
+        this.videoUrl = null;
+        this.userLocation = { lat: null, lon: null };
+        this.weather = null;
+        this.error = null;
+        localStorage.removeItem('gemini_wardrobe_inventory');
+        localStorage.removeItem('gemini_wardrobe_location');
+    },
+
+    async fetchWeather() {
+        if (!this.userLocation.lat || !this.userLocation.lon) return;
+        
+        try {
+            const { lat, lon } = this.userLocation;
+            // Simple client-side fetch for UI display
+            const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&timezone=auto`;
+            const response = await fetch(url);
+            const data = await response.json();
+            
+            if (data.current) {
+                this.weather = {
+                    temp: data.current.temperature_2m,
+                    code: data.current.weather_code,
+                    // Simple mapping for UI icon/text
+                    description: this.getWeatherDescription(data.current.weather_code)
+                };
+            }
+        } catch (e) {
+            console.error("Failed to fetch weather for UI", e);
+        }
+    },
+    
+    getWeatherDescription(code) {
+        if (code === 0) return "Clear";
+        if (code >= 1 && code <= 3) return "Cloudy";
+        if (code >= 45 && code <= 48) return "Foggy";
+        if (code >= 51 && code <= 67) return "Rainy";
+        if (code >= 71 && code <= 77) return "Snowy";
+        if (code >= 80 && code <= 82) return "Showers";
+        if (code >= 95) return "Thunderstorm";
+        return "Unknown";
+    },
+
     async analyzeVideo(file) {
       this.loading = true;
       this.error = null;
@@ -56,7 +117,15 @@ export const useWardrobeStore = defineStore('wardrobe', {
         });
 
         if (response.data && response.data.inventory) {
-          this.inventory = response.data.inventory;
+          // APPEND Logic with Unique IDs
+          const timestamp = Date.now();
+          const newItems = response.data.inventory.map((item, index) => ({
+              ...item,
+              id: `${timestamp}_${index}_${Math.random().toString(36).substr(2, 5)}` // Robust Unique ID
+          }));
+          
+          this.inventory.push(...newItems);
+          this.saveState();
           
           if (response.data.welcome_message) {
             this.messages.push({
@@ -82,6 +151,12 @@ export const useWardrobeStore = defineStore('wardrobe', {
       this.highlightedItems = ids || [];
     },
     getUserLocation() {
+        // Optimization: Use stored location if available
+        if (this.userLocation.lat && this.userLocation.lon) {
+            this.fetchWeather();
+            return;
+        }
+
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 (position) => {
@@ -90,6 +165,8 @@ export const useWardrobeStore = defineStore('wardrobe', {
                         lon: position.coords.longitude
                     };
                     console.log("Location access granted");
+                    this.saveState();
+                    this.fetchWeather();
                 },
                 (error) => {
                     console.log("Location access denied or error:", error.message);

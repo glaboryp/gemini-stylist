@@ -6,7 +6,7 @@
           AI
         </div>
         <div>
-          <h3 class="font-bold text-slate-800 text-lg">Stylist Assistant</h3>
+          <h3 class="font-bold text-slate-800 text-lg leading-tight">Stylist Assistant</h3>
           <div class="flex items-center gap-2">
             <p class="text-[11px] text-green-500 font-medium flex items-center gap-1">
               <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span> Online
@@ -16,6 +16,15 @@
             </p>
           </div>
         </div>
+      </div>
+
+      <!-- Weather Widget -->
+      <div v-if="store.weather" class="flex flex-col items-end">
+          <div class="flex items-center gap-1.5 text-slate-700 bg-slate-50 px-2.5 py-1 rounded-full border border-slate-100 shadow-sm">
+              <span class="text-lg">{{ getWeatherEmoji(store.weather.code) }}</span>
+              <span class="text-xs font-bold font-mono">{{ Math.round(store.weather.temp) }}°C</span>
+          </div>
+          <span class="text-[9px] text-slate-400 font-medium pr-1">{{ store.weather.description }}</span>
       </div>
     </div>
 
@@ -137,5 +146,16 @@ const getHostname = (uri) => {
     } catch (e) {
         return uri;
     }
+}
+
+const getWeatherEmoji = (code) => {
+    if (code === 0) return "☀️";
+    if (code >= 1 && code <= 3) return "☁️";
+    if (code >= 45 && code <= 48) return "🌫️";
+    if (code >= 51 && code <= 67) return "🌧️";
+    if (code >= 71 && code <= 77) return "❄️";
+    if (code >= 80 && code <= 82) return "🌦️";
+    if (code >= 95) return "⚡";
+    return "🌡️";
 }
 </script>
