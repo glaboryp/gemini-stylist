@@ -63,6 +63,14 @@ const store = useWardrobeStore()
 if (store.inventory.length === 0) {
     store.loadState();
     store.getUserLocation();
+
+    // Add welcome message on reload if we have items
+    if (store.inventory.length > 0 && store.messages.length === 0) {
+        store.messages.push({
+            role: 'model',
+            content: `Hello! I have loaded your ${store.inventory.length} items. How can I help you style them today?`
+        });
+    }
 }
 
 const isVideoModalOpen = ref(false)

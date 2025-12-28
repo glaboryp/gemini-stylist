@@ -75,7 +75,7 @@
     <div class="p-6 bg-white border-t border-slate-100">
       
       <!-- Suggestion Chips -->
-      <div v-if="store.messages.length === 0" class="flex flex-wrap gap-2 mb-4">
+      <div v-if="store.messages.filter(m => m.role === 'user').length === 0" class="flex flex-wrap gap-2 mb-4">
         <button 
             v-for="(chip, index) in suggestions" 
             :key="index"
@@ -87,7 +87,7 @@
         </button>
       </div>
 
-      <form @submit.prevent="sendMessage(newMessage)" class="relative">
+      <form @submit.prevent="sendMessage" class="relative">
         <input 
           v-model="newMessage" 
           type="text" 
