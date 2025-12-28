@@ -21,7 +21,7 @@
         {{ item.subtype }}
       </h3>
       <p class="text-[10px] uppercase tracking-wide text-slate-400 font-medium mb-3">
-        {{ item.primary_color }} • {{ item.type }}
+        {{ getColorName(item.primary_color) }} • {{ item.type }}
       </p>
 
       <!-- Badges -->
@@ -71,10 +71,28 @@ const isHighlighted = computed(() => {
     return store.highlightedItems.includes(props.item.id)
 })
 
-const getValidColor = (colorName) => {
-    if (!colorName) return '#e2e8f0';
-    const hexMatch = colorName.match(/#[0-9a-fA-F]{3,6}/);
+const getValidColor = (colorInput) => {
+    if (!colorInput) return '#e2e8f0';
+    
+    // Handle object if Gemini returns { name: '...', hex: '...' }
+    let colorString = colorInput;
+    if (typeof colorInput === 'object') {
+        colorString = colorInput.hex || colorInput.code || colorInput.color || '#e2e8f0';
+    }
+    
+    if (typeof colorString !== 'string') return '#e2e8f0';
+
+    const hexMatch = colorString.match(/#[0-9a-fA-F]{3,6}/);
     if (hexMatch) return hexMatch[0];
-    return colorName;
+    return colorString;
+}
+
+const getColorName = (colorInput) => {
+    if (!colorInput) return 'Unknown Color';
+    if (typeof colorInput === 'string') return colorInput;
+    if (typeof colorInput === 'object') {
+        return colorInput.name || colorInput.label || 'Unknown Color';
+    }
+    return 'Unknown Color';
 }
 </script>

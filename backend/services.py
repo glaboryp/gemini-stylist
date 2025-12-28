@@ -1,6 +1,7 @@
 import os
 import time
 import json
+import re
 from google import genai
 from google.genai import types
 from dotenv import load_dotenv
@@ -88,12 +89,32 @@ def analyze_video_service(video_path: str):
             response_mime_type="application/json"
         )
     )
-    
-    # Clean up file from Gemini storage (optional but good practice)
-    # client.files.delete(name=video_file.name) 
-    # Leaving it for now as per "Hackathon" speed, but maybe clear it later.
 
     return json.loads(response.text)
+
+def clean_and_parse_json(response_text):
+    # Try to find JSON block enclosed in markdown code formatting
+    match = re.search(r"```json\s*(\{.*?\})\s*```", response_text, re.DOTALL)
+    if match:
+        json_str = match.group(1)
+    else:
+        # Try to find the first outer set of curly braces
+        # This regex matches { ... } including newlines
+        match = re.search(r"(\{.*\})", response_text, re.DOTALL)
+        if match:
+            json_str = match.group(1)
+        else:
+            json_str = response_text
+
+    try:
+        return json.loads(json_str)
+    except json.JSONDecodeError:
+        # Attempt to clean up common issues (like trailing commas) if needed, 
+        # but for now fallback to treating the whole text as the response if parsing fails completely.
+        # However, if we found a "match" but it failed to parse, it might be partial.
+        # Let's fallback to the original robust strategy: 
+        # If we can't parse JSON, we assume the model just chatted.
+        return {"text": response_text, "related_item_ids": []}
 
 def chat_with_stylist_service(user_message: str, chat_history: list, inventory_context: list):
     """
@@ -109,15 +130,6 @@ def chat_with_stylist_service(user_message: str, chat_history: list, inventory_c
     # Using JSON string representation as requested by the prompt structure requirement
     inventory_json = json.dumps(inventory_context, indent=2)
     
-    # Translated prompt from user request:
-    # "Eres un estilista personal. Tienes acceso al siguiente inventario de ropa del usuario: {INVENTORY_JSON}. 
-    # Usa estas prendas para crear outfits. Si el usuario pide comprar algo nuevo que combine, 
-    # USA LA HERRAMIENTA DE BÚSQUEDA para encontrar enlaces reales de compra.
-    # IMPORTANTE: Tu respuesta debe ser un objeto JSON con la estructura:
-    # {
-    #   "text": "Tu respuesta natural y amable aquí (NO uses IDs técnicos como Item_XXX en este texto)",
-    #   "related_item_ids": ["Item_001", "Item_004"] (Lista de IDs de items mencionados o relevantes)
-    # }"
     system_instruction = f"""
     You are a personal stylist. You have access to the following user wardrobe inventory: 
     {inventory_json}
@@ -125,10 +137,13 @@ def chat_with_stylist_service(user_message: str, chat_history: list, inventory_c
     Use these items to create outfits. If the user asks to buy something new that matches, 
     USE THE SEARCH TOOL to find real shopping links.
 
-    IMPORTANT: You must return a valid JSON object with the following structure:
+    IMPORTANT: You must answer strictly in a valid JSON format. Do not include any conversational text outside the JSON object. 
+    The structure must be: {{"text": "...", "related_item_ids": [...]}}.
+    
+    Example response structure:
     {{
       "text": "Your natural, friendly response here. Do NOT mention technical IDs (like item_01) in this text.",
-      "related_item_ids": ["item_id_1", "item_id_2"] // List of item IDs referenced in your response
+      "related_item_ids": ["item_id_1", "item_id_2"]
     }}
     """
 
@@ -157,32 +172,38 @@ def chat_with_stylist_service(user_message: str, chat_history: list, inventory_c
             contents=contents,
             config=types.GenerateContentConfig(
                 tools=[google_search_tool],
-                system_instruction=system_instruction,
-                response_mime_type="application/json"
+                system_instruction=system_instruction
             )
         )
         
         # Extract sources from grounding metadata if available
         sources = []
         if response.candidates and response.candidates[0].grounding_metadata:
-             metadata = response.candidates[0].grounding_metadata
-             if metadata.grounding_chunks:
-                 for chunk in metadata.grounding_chunks:
-                     if chunk.web:
-                         sources.append({
-                             "title": chunk.web.title,
-                             "uri": chunk.web.uri
-                         })
+            metadata = response.candidates[0].grounding_metadata
+            if metadata.grounding_chunks:
+                for chunk in metadata.grounding_chunks:
+                    if chunk.web:
+                        sources.append({
+                            "title": chunk.web.title,
+                            "uri": chunk.web.uri
+                        })
         
-        # Parse the JSON response from Gemini
-        try:
-            parsed_response = json.loads(response.text)
-            text_response = parsed_response.get("text", "I found some items for you.")
-            related_ids = parsed_response.get("related_item_ids", [])
-        except json.JSONDecodeError:
-            # Fallback if raw text is returned
-            text_response = response.text
-            related_ids = []
+        # Parse the JSON response from Gemini using helper
+        parsed_response = clean_and_parse_json(response.text)
+        
+        # Robust extraction of text
+        text_response = parsed_response.get("text")
+        
+        if not text_response:
+             # If text is missing or empty, try to use the raw response if it's not JSON-like
+             if response.text and not response.text.strip().startswith("{"):
+                text_response = response.text
+             else:
+                text_response = "Here is what I found for you."
+        
+        related_ids = parsed_response.get("related_item_ids", [])
+
+        related_ids = parsed_response.get("related_item_ids", [])
 
         return {
             "text": text_response,

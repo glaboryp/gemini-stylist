@@ -2,7 +2,7 @@
   <div class="h-screen bg-premium-bg font-sans text-slate-800 relative overflow-hidden flex flex-col">
     <header class="bg-white/80 backdrop-blur-md sticky top-0 z-10 border-b border-slate-100 px-6 py-4 flex justify-between items-center shadow-sm h-16 shrink-0">
       <div class="flex items-center gap-3">
-        <span class="text-2xl">✨</span>
+        <img src="/logo_bgremove.png" alt="Gemini Stylist Logo" class="h-12 w-auto" />
         <h1 class="text-2xl font-serif font-bold tracking-tight text-slate-900">Gemini Stylist</h1>
       </div>
       <button @click="$router.push('/')" class="text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors uppercase tracking-wider">

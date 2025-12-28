@@ -35,24 +35,20 @@
         >
           <div v-html="formatMessage(msg.content)"></div>
           
-          <div v-if="msg.sources && msg.sources.length > 0" class="mt-4 pt-4 border-t border-slate-100">
-            <p class="text-xs font-bold text-slate-400 mb-2 uppercase tracking-wide">Shopping Sources</p>
-            <div class="grid gap-2">
-              <a 
-                v-for="(source, sIndex) in msg.sources.slice(0, 3)" 
+          <div v-if="msg.sources && msg.sources.length > 0" class="mt-5 pt-4 border-t border-slate-100">
+            <div class="flex items-center gap-2 mb-3">
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wide">Shopping Sources</span>
+                <span class="px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-600 text-[9px] font-bold border border-indigo-100">{{ msg.sources.length }}</span>
+            </div>
+            
+            <!-- Shopping Carousel -->
+            <div class="flex gap-3 overflow-x-auto pb-4 -mx-2 px-2 scrollbar-hide snap-x">
+              <ShoppingCard
+                v-for="(source, sIndex) in msg.sources" 
                 :key="sIndex"
-                :href="source.uri"
-                target="_blank"
-                class="flex items-center gap-3 p-2 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors border border-slate-200 group/link"
-              >
-                <div class="w-8 h-8 rounded-full bg-white flex items-center justify-center border border-slate-100 text-lg shadow-sm">
-                  🛍️
-                </div>
-                <div class="flex-1 min-w-0">
-                  <p class="text-sm font-medium text-indigo-600 truncate group-hover/link:underline">{{ source.title }}</p>
-                  <p class="text-[10px] text-slate-400 truncate">{{ getHostname(source.uri) }}</p>
-                </div>
-              </a>
+                :source="source"
+                class="snap-start"
+              />
             </div>
           </div>
         </div>
@@ -95,6 +91,7 @@
 <script setup>
 import { ref, watch, nextTick } from 'vue'
 import { useWardrobeStore } from '../stores/wardrobe'
+import ShoppingCard from './ShoppingCard.vue'
 
 const store = useWardrobeStore()
 const newMessage = ref('')

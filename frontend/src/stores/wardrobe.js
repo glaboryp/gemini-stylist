@@ -39,10 +39,9 @@ export const useWardrobeStore = defineStore('wardrobe', {
       let msgIndex = 0;
       this.loadingMessage = loadingMessages[0];
       
-      const interval = setInterval(() => {
-        msgIndex = (msgIndex + 1) % loadingMessages.length;
-        this.loadingMessage = loadingMessages[msgIndex];
-      }, 2000);
+      // We will handle progress text in the view now
+      this.loadingMessage = "Preparing video...";
+
 
       try {
         const formData = new FormData();
@@ -54,8 +53,6 @@ export const useWardrobeStore = defineStore('wardrobe', {
             'Content-Type': 'multipart/form-data'
           }
         });
-
-        clearInterval(interval);
 
         if (response.data && response.data.inventory) {
           this.inventory = response.data.inventory;
@@ -74,7 +71,6 @@ export const useWardrobeStore = defineStore('wardrobe', {
           }
         }
       } catch (err) {
-        clearInterval(interval);
         console.error(err);
         this.error = "Error analyzing video. Please try again.";
       } finally {

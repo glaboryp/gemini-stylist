@@ -73,4 +73,5 @@ async def chat(request: ChatRequest):
         return response
     except Exception as e:
         print(f"Chat Error: {e}")
-        return {"error": str(e)}
+        # DEBUG: Return error as text to see it in frontend
+        return {"text": f"Backend Error: {str(e)}", "related_item_ids": []}
