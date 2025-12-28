@@ -59,6 +59,12 @@ import VideoModal from '../components/VideoModal.vue'
 const router = useRouter()
 const store = useWardrobeStore()
 
+// Ensure state is loaded on refresh (Persistence)
+if (store.inventory.length === 0) {
+    store.loadState();
+    store.getUserLocation();
+}
+
 const isVideoModalOpen = ref(false)
 const videoModalRef = ref(null)
 

@@ -73,7 +73,21 @@
     </div>
 
     <div class="p-6 bg-white border-t border-slate-100">
-      <form @submit.prevent="sendMessage" class="relative">
+      
+      <!-- Suggestion Chips -->
+      <div v-if="store.messages.length === 0" class="flex flex-wrap gap-2 mb-4">
+        <button 
+            v-for="(chip, index) in suggestions" 
+            :key="index"
+            @click="sendMessage(chip)"
+            class="px-3 py-1.5 rounded-full border border-slate-200 bg-white text-xs font-medium text-slate-600 hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600 transition-all shadow-sm cursor-pointer animate-fade-in-up"
+            :style="{ animationDelay: `${index * 100}ms` }"
+        >
+            {{ chip }}
+        </button>
+      </div>
+
+      <form @submit.prevent="sendMessage(newMessage)" class="relative">
         <input 
           v-model="newMessage" 
           type="text" 
@@ -98,7 +112,7 @@
 </template>
 
 <script setup>
-import { ref, watch, nextTick } from 'vue'
+import { ref, watch, nextTick, computed } from 'vue'
 import { useWardrobeStore } from '../stores/wardrobe'
 import ShoppingCard from './ShoppingCard.vue'
 
@@ -113,11 +127,15 @@ watch(() => store.messages.length, async () => {
     if (container) container.scrollTop = container.scrollHeight
 })
 
-const sendMessage = async () => {
-    if (!newMessage.value.trim() || isThinking.value) return;
+const sendMessage = async (textInput) => {
+    // If textInput is a string (from chip), use it. Otherwise use model value.
+    const textToSend = (typeof textInput === 'string') ? textInput : newMessage.value;
+
+    if (!textToSend.trim() || isThinking.value) return;
     
-    const text = newMessage.value;
-    newMessage.value = '';
+    // Updates UI
+    if (typeof textInput !== 'string') newMessage.value = ''; // Only clear input if sent from input
+    
     isThinking.value = true;
     
     // Auto-scroll to bottom immediately
@@ -125,7 +143,7 @@ const sendMessage = async () => {
     const container = document.getElementById('chat-container')
     if (container) container.scrollTop = container.scrollHeight
 
-    await store.sendMessage(text);
+    await store.sendMessage(textToSend);
     isThinking.value = false;
 }
 
@@ -158,4 +176,23 @@ const getWeatherEmoji = (code) => {
     if (code >= 95) return "⚡";
     return "🌡️";
 }
+
+const suggestions = computed(() => {
+    const list = [
+        "💼 Work / Office Look",
+        "🎉 Party / Night Out",
+        "✨ Casual Weekend"
+    ];
+    
+    // Add weather context if available
+    if (store.weather) {
+        const temp = Math.round(store.weather.temp);
+        const condition = store.weather.description || 'Current Weather';
+        list.unshift(`☁️ Outfit for today (${condition}, ${temp}°C)`);
+    } else {
+        list.unshift("📅 Outfit for today");
+    }
+    
+    return list;
+})
 </script>
