@@ -1,13 +1,16 @@
-# Gemini Stylist
+# <img src="frontend/public/logo_bgremove.png" alt="Gemini Stylist Logo" height="60" align="middle" /> Gemini Stylist
 
-Gemini Stylist is an AI-powered personal stylist application that organizes your wardrobe and offers outfit suggestions. It utilizes the Gemini 3 multimodal capabilities to analyze videos of your clothing, identifying items, colors, patterns, and more to build a digital inventory.
+Gemini Stylist is an AI-powered personal stylist application that scans your wardrobe from a video and acts as your fashion companion. It utilizes **Gemini 3** multimodal capabilities to build a digital inventory and offers hyper-personalized outfit advice grounded in real-world trends and weather data.
 
-## Features
+## ✨ New Features & Capabilities
 
-- **Video Analysis**: Upload a video of your wardrobe, and Gemini 3 will automatically detect and catalog your clothes.
-- **Digital Closet**: View your organized inventory with details like type, color, season, and formality.
-- **AI Stylist Chat**: Chat with an AI assistant that knows your wardrobe and can suggest outfits for specific occasions.
-- **Demo Mode**: Quickly explore the app's features with pre-loaded mock data.
+- **🕵️‍♀️ Style Persona Diagnosis**: Automatically analyzes your "vibe" (e.g., _Minimalist_, _Boho_, _Y2K_) and dominant color palette upon video upload, acting as a virtual Vogue editor.
+- **🌥️ Weather-Adaptive AI**: Uses your geolocation (Open-Meteo API) to recommend outfits suited for your local weather (temperature, rain, etc.) in real-time.
+- **📱 Fully Responsive Mobile UI**: Seamless experience on all devices with a mobile-first design, including a smooth slide-over chat interface for phones.
+- **💾 Smart Persistence**: Your wardrobe and location data actomatically save to local storage, so you never lose your items after a refresh.
+- **🧠 Contextual Suggestions**: "Smart Chips" offer quick starters like _"Outfit for today (Rainy, 12°C)"_ based on context.
+- **🔍 Google Search Grounding**: The AI verifies fashion trends 2024/2025 in real-time to ensure advice is current.
+- **🛍️ Shopping Integration**: Displays visual shopping cards with logos for recommended new items.
 
 ## Project Structure
 
@@ -78,12 +81,12 @@ Gemini Stylist is an AI-powered personal stylist application that organizes your
 2.  Install dependencies:
 
     ```bash
-    npm install
+    pnpm install
     ```
 
 3.  Run the development server:
     ```bash
-    npm run dev
+    pnpm run dev
     ```
     The frontend runs at `http://localhost:5173`.
 
