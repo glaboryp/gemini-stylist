@@ -1,7 +1,11 @@
 <template>
-  <aside class="hidden lg:flex w-[40%] bg-white flex-col border-l border-slate-100 relative shadow-2xl z-20">
+  <aside class="flex flex-col border-l border-slate-100 shadow-2xl bg-white">
     <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-white/95 backdrop-blur h-16 shrink-0">
       <div class="flex items-center gap-3">
+        <!-- Mobile Close Button -->
+        <button @click="$emit('close')" class="lg:hidden p-1 -ml-2 text-slate-400 hover:text-slate-600">
+             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+        </button>
         <div class="w-10 h-10 rounded-full bg-linear-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-white text-sm font-bold shadow-md">
           AI
         </div>

@@ -25,7 +25,7 @@
             <p class="text-lg font-light">Your wardrobe is empty.</p>
           </div>
 
-          <div v-else class="grid grid-cols-2 md:grid-cols-3 gap-6 auto-rows-fr">
+          <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-fr">
             <WardrobeItemCard 
                 v-for="item in store.inventory" 
                 :key="item.id" 
@@ -36,7 +36,26 @@
         </div>
       </main>
         
-      <ChatPanel />
+    <ChatPanel 
+        class="transition-transform duration-300 ease-in-out border-l border-slate-200"
+        :class="[
+            // Base (Mobile): Fixed overlay, full screen, z-50
+            'fixed inset-0 z-50 w-full h-full bg-white',
+            // Desktop: Relative sidebar, 40% width, reset position
+            'lg:relative lg:inset-auto lg:z-auto lg:w-[40%] lg:h-auto lg:translate-x-0',
+            // State: Open vs Closed (Mobile only, Desktop always 0)
+            isChatOpen ? 'translate-x-0' : 'translate-x-full'
+        ]"
+        @close="isChatOpen = false"
+    />
+
+    <!-- Mobile Chat Toggle FAB -->
+    <button 
+        @click="isChatOpen = true"
+        class="fixed bottom-6 right-6 z-20 lg:hidden w-14 h-14 bg-indigo-600 text-white rounded-full shadow-xl flex items-center justify-center hover:bg-indigo-700 hover:scale-105 active:scale-95 transition-all"
+    >
+        <svg v-if="!isChatOpen" class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+    </button>
     </div>
     
     <VideoModal 
@@ -58,6 +77,9 @@ import VideoModal from '../components/VideoModal.vue'
 
 const router = useRouter()
 const store = useWardrobeStore()
+const isChatOpen = ref(false)
+const isVideoModalOpen = ref(false)
+const videoModalRef = ref(null)
 
 // Ensure state is loaded on refresh (Persistence)
 if (store.inventory.length === 0) {
@@ -73,8 +95,7 @@ if (store.inventory.length === 0) {
     }
 }
 
-const isVideoModalOpen = ref(false)
-const videoModalRef = ref(null)
+
 
 const handleJumpToVideo = async (seconds) => {
   if (!store.videoUrl) {
