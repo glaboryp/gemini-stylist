@@ -5,3 +5,4 @@ python-multipart
 python-dotenv
 google-api-core
 google-auth
+requests
