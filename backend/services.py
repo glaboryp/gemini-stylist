@@ -7,20 +7,8 @@ import requests
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
-from google.api_core.exceptions import ResourceExhausted, ServiceUnavailable, InternalServerError
 
 load_dotenv()
-
-keys_string = os.environ.get("GOOGLE_API_KEYS", "")
-API_KEYS_POOL = [k.strip() for k in keys_string.split() if k.strip()]
-
-if not API_KEYS_POOL:
-    single_key = os.environ.get("GOOGLE_API_KEY")
-    if single_key:
-        API_KEYS_POOL = [single_key]
-    else:
-        print("❌ ADVERTENCIA: No se encontraron API KEYS.")
-        API_KEYS_POOL = []
 
 FALLBACK_MODELS = [
     "gemini-2.5-flash-lite",
@@ -31,12 +19,20 @@ FALLBACK_MODELS = [
 
 VIDEO_MODEL_ID = "gemini-3-flash"
 
+def get_api_keys():
+    keys = [k.strip() for k in os.environ.get("GOOGLE_API_KEYS", "").split() if k.strip()]
+    if not keys:
+        single_key = os.environ.get("GOOGLE_API_KEY")
+        if single_key:
+            keys = [single_key]
+    return keys
+
 def get_random_client():
-    if not API_KEYS_POOL:
+    keys = get_api_keys()
+    if not keys:
         raise ValueError("No hay API Keys disponibles.")
-    
-    selected_key = random.choice(API_KEYS_POOL)
-    return genai.Client(api_key=selected_key)
+
+    return genai.Client(api_key=random.choice(keys))
 
 SYSTEM_PROMPT = """
 You are an expert fashion stylist and inventory manager with perfect computer vision.
