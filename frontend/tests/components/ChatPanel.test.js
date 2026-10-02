@@ -1,0 +1,270 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { flushPromises, mount } from '@vue/test-utils'
+import ChatPanel from '../../src/components/ChatPanel.vue'
+import ShoppingCard from '../../src/components/ShoppingCard.vue'
+import { useWardrobeStore } from '../../src/stores/wardrobe'
+import { freshPinia } from '../helpers/mount'
+
+let store
+let sendMessage
+
+const mountPanel = () =>
+  mount(ChatPanel, { global: { plugins: [freshPinia()] }, attachTo: document.body })
+
+const setup = () => {
+  const wrapper = mountPanel()
+  store = useWardrobeStore()
+  sendMessage = vi.spyOn(store, 'sendMessage').mockResolvedValue()
+  return wrapper
+}
+
+const input = (wrapper) => wrapper.find('input[type="text"]')
+const submit = (wrapper) => wrapper.find('button[type="submit"]')
+const chips = (wrapper) => wrapper.findAll('button').filter((b) => b.classes().includes('rounded-full') && b.attributes('type') !== 'submit' && b.text())
+
+beforeEach(() => {
+  document.body.innerHTML = ''
+})
+
+describe('empty state', () => {
+  it('shows the hint and suggestion chips', () => {
+    const wrapper = setup()
+
+    expect(wrapper.text()).toContain('Ask me "What should I wear to a dinner?"')
+    expect(chips(wrapper).map((c) => c.text())).toEqual([
+      '📅 Outfit for today',
+      '💼 Work / Office Look',
+      '🎉 Party / Night Out',
+      '✨ Casual Weekend',
+    ])
+  })
+
+  it('disables sending while the input is blank', async () => {
+    const wrapper = setup()
+    expect(submit(wrapper).attributes('disabled')).toBeDefined()
+
+    await input(wrapper).setValue('   ')
+    expect(submit(wrapper).attributes('disabled')).toBeDefined()
+
+    await input(wrapper).setValue('hi')
+    expect(submit(wrapper).attributes('disabled')).toBeUndefined()
+  })
+})
+
+describe('messages', () => {
+  it('renders user and model messages', async () => {
+    const wrapper = setup()
+    store.messages = [
+      { role: 'user', content: 'hello' },
+      { role: 'model', content: 'hi there' },
+    ]
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.text()).toContain('hello')
+    expect(wrapper.text()).toContain('hi there')
+    expect(wrapper.text()).not.toContain('Ask me "What should I wear')
+  })
+
+  it('formats bold, italic and line breaks', async () => {
+    const wrapper = setup()
+    store.messages = [{ role: 'model', content: '**Bold** and *soft*\nnext' }]
+    await wrapper.vm.$nextTick()
+
+    const html = wrapper.find('[class*="rounded-bl-none"] div').html()
+    expect(html).toContain('<strong class="font-semibold text-indigo-900">Bold</strong>')
+    expect(html).toContain('<em class="text-slate-600">soft</em>')
+    expect(html).toContain('<br>')
+  })
+
+  it('renders an empty bubble for a message without content', async () => {
+    const wrapper = setup()
+    store.messages = [{ role: 'model' }]
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.find('[class*="rounded-bl-none"] div').text()).toBe('')
+  })
+
+  it('renders a shopping card per source with a counter', async () => {
+    const wrapper = setup()
+    store.messages = [
+      {
+        role: 'model',
+        content: 'Try these',
+        sources: [
+          { title: 'A', uri: 'https://a.com' },
+          { title: 'B', uri: 'https://b.com' },
+        ],
+      },
+    ]
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.findAllComponents(ShoppingCard)).toHaveLength(2)
+    expect(wrapper.text()).toContain('Shopping Sources')
+  })
+
+  it('omits the sources block for empty sources', async () => {
+    const wrapper = setup()
+    store.messages = [{ role: 'model', content: 'x', sources: [] }]
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.text()).not.toContain('Shopping Sources')
+  })
+
+  it('scrolls the chat to the bottom when a message arrives', async () => {
+    const wrapper = setup()
+    const container = wrapper.find('#chat-container').element
+    Object.defineProperty(container, 'scrollHeight', { value: 500, configurable: true })
+
+    store.messages = [{ role: 'user', content: 'a' }]
+    await flushPromises()
+
+    expect(container.scrollTop).toBe(500)
+  })
+})
+
+describe('suggestion chips', () => {
+  it('hide once the user has written a message', async () => {
+    const wrapper = setup()
+    store.messages = [{ role: 'user', content: 'hi' }]
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.text()).not.toContain('Work / Office Look')
+  })
+
+  it('stay visible when only the model has spoken', async () => {
+    const wrapper = setup()
+    store.messages = [{ role: 'model', content: 'welcome' }]
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.text()).toContain('Work / Office Look')
+  })
+
+  it('send their text without touching the input', async () => {
+    const wrapper = setup()
+    await input(wrapper).setValue('draft')
+
+    await chips(wrapper)[1].trigger('click')
+    await flushPromises()
+
+    expect(sendMessage).toHaveBeenCalledWith('💼 Work / Office Look')
+    expect(input(wrapper).element.value).toBe('draft')
+  })
+
+  it('mention the weather when it is known', async () => {
+    const wrapper = setup()
+    store.weather = { temp: 18.6, code: 61, description: 'Rainy' }
+    await wrapper.vm.$nextTick()
+
+    expect(chips(wrapper)[0].text()).toBe('☁️ Outfit for today (Rainy, 19°C)')
+  })
+
+  it('use a generic condition when the weather has no description', async () => {
+    const wrapper = setup()
+    store.weather = { temp: 10, code: 0 }
+    await wrapper.vm.$nextTick()
+
+    expect(chips(wrapper)[0].text()).toBe('☁️ Outfit for today (Current Weather, 10°C)')
+  })
+})
+
+describe('weather widget', () => {
+  it('is hidden without weather', () => {
+    expect(setup().text()).not.toContain('°C')
+  })
+
+  it.each([
+    [0, '☀️'],
+    [2, '☁️'],
+    [45, '🌫️'],
+    [61, '🌧️'],
+    [73, '❄️'],
+    [81, '🌦️'],
+    [96, '⚡'],
+    [4, '🌡️'],
+  ])('shows the emoji for code %i', async (code, emoji) => {
+    const wrapper = setup()
+    store.weather = { temp: 20.4, code, description: 'Whatever' }
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.text()).toContain(emoji)
+    expect(wrapper.text()).toContain('20°C')
+    expect(wrapper.text()).toContain('Whatever')
+  })
+})
+
+describe('sending', () => {
+  it('sends the typed message and clears the input', async () => {
+    const wrapper = setup()
+    await input(wrapper).setValue('what should I wear?')
+
+    await wrapper.find('form').trigger('submit')
+    await flushPromises()
+
+    expect(sendMessage).toHaveBeenCalledWith('what should I wear?')
+    expect(input(wrapper).element.value).toBe('')
+  })
+
+  it('does not send blank messages', async () => {
+    const wrapper = setup()
+    await input(wrapper).setValue('   ')
+
+    await wrapper.find('form').trigger('submit')
+
+    expect(sendMessage).not.toHaveBeenCalled()
+  })
+
+  it('shows the thinking state until the reply arrives', async () => {
+    const wrapper = setup()
+    let finish
+    sendMessage.mockReturnValue(new Promise((resolve) => { finish = resolve }))
+    await input(wrapper).setValue('hi')
+
+    await wrapper.find('form').trigger('submit')
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('Thinking...')
+    expect(input(wrapper).attributes('disabled')).toBeDefined()
+    expect(input(wrapper).attributes('placeholder')).toBe('Stylist is thinking...')
+    expect(wrapper.find('.animate-bounce').exists()).toBe(true)
+
+    finish()
+    await flushPromises()
+
+    expect(wrapper.text()).not.toContain('Thinking...')
+    expect(input(wrapper).attributes('disabled')).toBeUndefined()
+  })
+
+  it('ignores new messages while thinking', async () => {
+    const wrapper = setup()
+    sendMessage.mockReturnValue(new Promise(() => {}))
+    await input(wrapper).setValue('first')
+    await wrapper.find('form').trigger('submit')
+    await flushPromises()
+
+    await chips(wrapper)[0].trigger('click')
+
+    expect(sendMessage).toHaveBeenCalledTimes(1)
+  })
+
+  it('scrolls to the bottom right after sending', async () => {
+    const wrapper = setup()
+    const container = wrapper.find('#chat-container').element
+    Object.defineProperty(container, 'scrollHeight', { value: 900, configurable: true })
+    await input(wrapper).setValue('hi')
+
+    await wrapper.find('form').trigger('submit')
+    await flushPromises()
+
+    expect(container.scrollTop).toBe(900)
+  })
+})
+
+describe('close button', () => {
+  it('emits close', async () => {
+    const wrapper = setup()
+
+    await wrapper.find('button').trigger('click')
+
+    expect(wrapper.emitted('close')).toHaveLength(1)
+  })
+})
