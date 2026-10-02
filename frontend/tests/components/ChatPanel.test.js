@@ -76,6 +76,41 @@ describe('messages', () => {
     expect(html).toContain('<br>')
   })
 
+  it.each([
+    ['an image with an inline handler', '<img src=x onerror="alert(1)">', 'img'],
+    ['a script tag', '<script>alert(1)</script>', 'script'],
+    ['an anchor', '<a href="javascript:alert(1)">x</a>', 'a'],
+  ])('does not render %s as HTML', async (_label, content, tag) => {
+    const wrapper = setup()
+    store.messages = [{ role: 'model', content }]
+    await wrapper.vm.$nextTick()
+
+    const bubble = wrapper.find('[class*="rounded-bl-none"] div')
+    expect(bubble.find(tag).exists()).toBe(false)
+    expect(bubble.text()).toBe(content)
+  })
+
+  it('escapes user messages too', async () => {
+    const wrapper = setup()
+    store.messages = [{ role: 'user', content: '<b>hi</b> & "bye" \'now\'' }]
+    await wrapper.vm.$nextTick()
+
+    const bubble = wrapper.find('[class*="rounded-br-none"] div')
+    expect(bubble.find('b').exists()).toBe(false)
+    expect(bubble.text()).toBe('<b>hi</b> & "bye" \'now\'')
+  })
+
+  it('keeps formatting while escaping markup inside it', async () => {
+    const wrapper = setup()
+    store.messages = [{ role: 'model', content: '**<i>bold</i>**\nnext' }]
+    await wrapper.vm.$nextTick()
+
+    const bubble = wrapper.find('[class*="rounded-bl-none"] div')
+    expect(bubble.find('strong').text()).toBe('<i>bold</i>')
+    expect(bubble.find('i').exists()).toBe(false)
+    expect(bubble.find('br').exists()).toBe(true)
+  })
+
   it('renders an empty bubble for a message without content', async () => {
     const wrapper = setup()
     store.messages = [{ role: 'model' }]

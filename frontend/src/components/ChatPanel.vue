@@ -151,10 +151,17 @@ const sendMessage = async (textInput) => {
     isThinking.value = false;
 }
 
+const escapeHtml = (text) => text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+
 const formatMessage = (content) => {
     if (!content) return '';
     // Format bold
-    let formatted = content.replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-indigo-900">$1</strong>');
+    let formatted = escapeHtml(content).replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-indigo-900">$1</strong>');
     // Format *text* as italic
     formatted = formatted.replace(/\*(.*?)\*/g, '<em class="text-slate-600">$1</em>');
     // Line breaks
