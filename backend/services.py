@@ -1,8 +1,9 @@
-import os
-import time
 import json
-import re
+import os
 import random
+import re
+import time
+
 import requests
 from dotenv import load_dotenv
 from google import genai
@@ -77,12 +78,18 @@ def get_current_weather(lat: float, lon: float):
             code = data["current"]["weather_code"]
             
             condition = "Unknown"
-            if code == 0: condition = "Clear sky"
-            elif code in [1, 2, 3]: condition = "Cloudy"
-            elif code in [45, 48]: condition = "Foggy"
-            elif code in [51, 53, 55, 61, 63, 65, 80, 81, 82]: condition = "Rainy"
-            elif code in [71, 73, 75, 77, 85, 86]: condition = "Snowy"
-            elif code in [95, 96, 99]: condition = "Thunderstorm"
+            if code == 0:
+                condition = "Clear sky"
+            elif code in [1, 2, 3]:
+                condition = "Cloudy"
+            elif code in [45, 48]:
+                condition = "Foggy"
+            elif code in [51, 53, 55, 61, 63, 65, 80, 81, 82]:
+                condition = "Rainy"
+            elif code in [71, 73, 75, 77, 85, 86]:
+                condition = "Snowy"
+            elif code in [95, 96, 99]:
+                condition = "Thunderstorm"
             
             return f"{condition}, {temp}°C"
     except Exception as e:
@@ -94,7 +101,8 @@ def generate_style_persona(inventory: list, lat: float = None, lon: float = None
     weather_context = ""
     if lat and lon:
         w_info = get_current_weather(lat, lon)
-        if w_info: weather_context = f"User Location Weather: {w_info}."
+        if w_info:
+            weather_context = f"User Location Weather: {w_info}."
 
     inventory_json = json.dumps(inventory, indent=2)
 
@@ -191,7 +199,8 @@ def chat_with_stylist_service(user_message: str, chat_history: list, inventory_c
     weather_context = ""
     if lat and lon:
         w_info = get_current_weather(lat, lon)
-        if w_info: weather_context = f"User Location Weather: {w_info}"
+        if w_info:
+            weather_context = f"User Location Weather: {w_info}"
 
     inventory_json = json.dumps(inventory_context, indent=2)
     
