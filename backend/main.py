@@ -1,13 +1,15 @@
 import logging
-import shutil
 import os
+import shutil
 import uuid
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
-from services import analyze_video_service, chat_with_stylist_service
+from typing import List, Optional
+
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import List, Optional, Any
+
+from services import analyze_video_service, chat_with_stylist_service
 
 logger = logging.getLogger(__name__)
 
@@ -61,7 +63,7 @@ async def analyze_video(
         return result
     except Exception:
         logger.exception("Video analysis failed")
-        raise HTTPException(status_code=500, detail="Video analysis failed")
+        raise HTTPException(status_code=500, detail="Video analysis failed") from None
     finally:
         # Cleanup temp file
         if os.path.exists(temp_file_path):
@@ -87,4 +89,4 @@ async def chat(request: ChatRequest):
         return response
     except Exception:
         logger.exception("Chat failed")
-        raise HTTPException(status_code=500, detail="Chat failed")
+        raise HTTPException(status_code=500, detail="Chat failed") from None
