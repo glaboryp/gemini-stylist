@@ -53,6 +53,7 @@ Return ONLY a valid JSON object with the following structure:
 """
 
 def clean_and_parse_json(response_text):
+    response_text = response_text or ""
     try:
         match = re.search(r"```json\s*(\{.*?\})\s*```", response_text, re.DOTALL)
         if match:
@@ -181,7 +182,7 @@ def analyze_video_service(video_path: str, lat: float = None, lon: float = None)
     if "inventory" in initial_result:
         print("Generating Stylist Persona...")
         persona = generate_style_persona(initial_result["inventory"], lat, lon)
-        if persona and "text" in persona:
+        if persona and persona.get("text"):
             initial_result["welcome_message"] = persona["text"]
     
     return initial_result

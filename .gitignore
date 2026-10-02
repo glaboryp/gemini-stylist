@@ -31,6 +31,9 @@ dist-ssr
 *.local
 .eslintcache
 coverage/
+.coverage
+htmlcov/
+.pytest_cache/
 *.tsbuildinfo
 
 # Backend (Python)
