@@ -1,66 +1,77 @@
 <template>
-  <div class="h-screen bg-premium-bg font-sans text-slate-800 relative overflow-hidden flex flex-col">
-    <header class="bg-white/80 backdrop-blur-md sticky top-0 z-10 border-b border-slate-100 px-6 py-4 flex justify-between items-center shadow-sm h-16 shrink-0">
-      <div class="flex items-center gap-3">
-        <img src="/logo_bgremove.png" alt="Gemini Stylist Logo" class="h-12 w-auto" />
-        <h1 class="text-2xl font-serif font-bold tracking-tight text-slate-900">Gemini Stylist</h1>
-      </div>
-      <button @click="$router.push('/')" class="text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors uppercase tracking-wider">
-        Back to Upload
+  <div class="flex h-[100dvh] flex-col overflow-hidden bg-paper font-sans text-ink">
+    <header class="flex h-16 shrink-0 items-center justify-between border-b border-line px-6">
+      <BrandMark />
+      <button
+        type="button"
+        class="inline-flex h-11 items-center gap-2 text-sm font-medium text-ink-soft transition-colors hover:text-ink"
+        @click="$router.push('/')"
+      >
+        <PhArrowLeft :size="18" aria-hidden="true" />
+        <span>Back to Upload</span>
       </button>
     </header>
 
-    <div class="flex-1 flex overflow-hidden">
-      <main class="w-full overflow-y-auto p-6 lg:p-10 scroll-smooth border-r border-slate-200">
-        <div class="max-w-4xl mx-auto">
+    <div class="flex min-h-0 flex-1">
+      <main class="flex-1 overflow-y-auto scroll-smooth px-6 pb-24 pt-8 lg:px-12 lg:py-10">
+        <div class="mx-auto max-w-5xl">
           <div class="mb-8">
-            <h2 class="text-4xl font-serif font-medium text-slate-900 mb-2">My Collection</h2>
-            <p class="text-slate-500 font-light">
-              {{ store.inventory.length }} items curated by AI
+            <h2 class="font-display text-4xl font-semibold tracking-tight">My Collection</h2>
+            <p class="mt-2 font-mono text-sm text-ink-soft">
+              {{ store.inventory.length }} {{ store.inventory.length === 1 ? 'piece' : 'pieces' }}
             </p>
           </div>
 
-          <div v-if="store.inventory.length === 0" class="flex flex-col items-center justify-center py-32 text-slate-400">
-            <svg class="w-16 h-16 mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
-            <p class="text-lg font-light">Your wardrobe is empty.</p>
+          <div v-if="store.inventory.length === 0" class="flex flex-col items-start gap-4 border border-line bg-surface p-8 sm:p-12">
+            <PhCoatHanger :size="40" aria-hidden="true" />
+            <p class="font-display text-2xl font-semibold">Your wardrobe is empty.</p>
+            <p class="max-w-[48ch] text-ink-soft">Upload a short video of your closet and every piece will show up here as a swatch.</p>
+            <button
+              type="button"
+              class="inline-flex h-11 items-center gap-2 bg-accent px-6 font-medium text-accent-ink transition-colors duration-200 hover:bg-ink hover:text-paper active:translate-y-px"
+              @click="$router.push('/')"
+            >
+              <span>Upload Video</span>
+              <PhArrowRight :size="18" aria-hidden="true" />
+            </button>
           </div>
 
-          <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-fr">
-            <WardrobeItemCard 
-                v-for="item in store.inventory" 
-                :key="item.id" 
+          <div v-else class="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
+            <WardrobeItemCard
+                v-for="item in store.inventory"
+                :key="item.id"
                 :item="item"
                 @play-video="handleJumpToVideo"
             />
           </div>
         </div>
       </main>
-        
-    <ChatPanel 
-        class="transition-transform duration-300 ease-in-out border-l border-slate-200"
+
+      <ChatPanel
+        class="border-l border-line transition-[transform,visibility] duration-300 ease-out"
         :class="[
-            // Base (Mobile): Fixed overlay, full screen, z-50
-            'fixed inset-0 z-50 w-full h-full bg-white',
-            // Desktop: Relative sidebar, 40% width, reset position
-            'lg:relative lg:inset-auto lg:z-auto lg:w-[40%] lg:h-auto lg:translate-x-0',
-            // State: Open vs Closed (Mobile only, Desktop always 0)
-            isChatOpen ? 'translate-x-0' : 'translate-x-full'
+            'fixed inset-0 z-40 h-full w-full',
+            'lg:relative lg:inset-auto lg:z-auto lg:w-[26rem] lg:translate-x-0 xl:w-[30rem]',
+            isChatOpen ? 'translate-x-0' : 'max-lg:invisible translate-x-full'
         ]"
         @close="isChatOpen = false"
-    />
+      />
 
-    <!-- Mobile Chat Toggle FAB -->
-    <button 
+      <button
+        v-if="!isChatOpen"
+        type="button"
+        data-testid="chat-toggle"
+        class="fixed bottom-5 right-5 z-30 flex h-14 items-center justify-center gap-2 bg-accent px-5 font-medium text-accent-ink transition-colors duration-200 hover:bg-ink hover:text-paper active:translate-y-px lg:hidden"
         @click="isChatOpen = true"
-        class="fixed bottom-6 right-6 z-20 lg:hidden w-14 h-14 bg-indigo-600 text-white rounded-full shadow-xl flex items-center justify-center hover:bg-indigo-700 hover:scale-105 active:scale-95 transition-all"
-    >
-        <svg v-if="!isChatOpen" class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
-    </button>
+      >
+        <PhChatText :size="24" aria-hidden="true" />
+        <span>Ask stylist</span>
+      </button>
     </div>
-    
-    <VideoModal 
+
+    <VideoModal
       ref="videoModalRef"
-      :is-open="isVideoModalOpen" 
+      :is-open="isVideoModalOpen"
       :video-url="store.videoUrl"
       @close="isVideoModalOpen = false"
     />
@@ -69,24 +80,22 @@
 
 <script setup>
 import { ref, nextTick, watch } from 'vue'
+import { PhArrowLeft, PhArrowRight, PhChatText, PhCoatHanger } from '@phosphor-icons/vue'
 import { useWardrobeStore } from '../stores/wardrobe'
-import { useRouter } from 'vue-router'
+import BrandMark from '../components/BrandMark.vue'
 import WardrobeItemCard from '../components/WardrobeItemCard.vue'
 import ChatPanel from '../components/ChatPanel.vue'
 import VideoModal from '../components/VideoModal.vue'
 
-const router = useRouter()
 const store = useWardrobeStore()
 const isChatOpen = ref(false)
 const isVideoModalOpen = ref(false)
 const videoModalRef = ref(null)
 
-// Ensure state is loaded on refresh (Persistence)
 if (store.inventory.length === 0) {
     store.loadState();
     store.getUserLocation();
 
-    // Add welcome message on reload if we have items
     if (store.inventory.length > 0 && store.messages.length === 0) {
         store.messages.push({
             role: 'model',
@@ -95,12 +104,10 @@ if (store.inventory.length === 0) {
     }
 }
 
-
-
 const handleJumpToVideo = async (seconds) => {
   if (!store.videoUrl) {
     if (seconds > 0 && !store.videoUrl) {
-        alert("Video playback is only available for uploaded videos, not in demo mode.");
+        alert("Video playback is only available for videos you uploaded.");
         return;
     }
   }
@@ -111,7 +118,6 @@ const handleJumpToVideo = async (seconds) => {
     }
 }
 
-// Watch for highlighted items to scroll into view
 watch(() => store.highlightedItems, async (newItems) => {
     if (newItems && newItems.length > 0) {
         await nextTick();

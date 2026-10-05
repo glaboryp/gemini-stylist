@@ -48,15 +48,30 @@ describe('inventory', () => {
     const wrapper = await mountView()
 
     expect(wrapper.text()).toContain('Your wardrobe is empty.')
-    expect(wrapper.text()).toContain('0 items curated by AI')
+    expect(wrapper.text()).toContain('0 pieces')
     expect(wrapper.findAllComponents(WardrobeItemCard)).toHaveLength(0)
+  })
+
+  it('invites the user to upload from the empty state', async () => {
+    const wrapper = await mountView()
+
+    await wrapper.findAll('button').find((b) => b.text().includes('Upload Video')).trigger('click')
+
+    expect(router.push).toHaveBeenCalledWith('/')
+  })
+
+  it('uses the singular for a single piece', async () => {
+    const wrapper = await mountView({ prepare: (s) => { s.inventory = [items[0]] } })
+
+    expect(wrapper.text()).toContain('1 piece')
+    expect(wrapper.text()).not.toContain('1 pieces')
   })
 
   it('renders a card per item', async () => {
     const wrapper = await mountView({ prepare: (s) => { s.inventory = items } })
 
     expect(wrapper.findAllComponents(WardrobeItemCard)).toHaveLength(2)
-    expect(wrapper.text()).toContain('2 items curated by AI')
+    expect(wrapper.text()).toContain('2 pieces')
     expect(wrapper.text()).not.toContain('Your wardrobe is empty.')
   })
 
@@ -107,21 +122,26 @@ describe('chat panel', () => {
     const wrapper = await mountView()
     const panel = () => wrapper.find('.chat-stub')
     expect(panel().classes()).toContain('translate-x-full')
+    expect(panel().classes()).toContain('max-lg:invisible')
+    expect(wrapper.find('[data-testid="chat-toggle"]').text()).toBe('Ask stylist')
 
-    await wrapper.findAll('button').find((b) => b.classes().includes('fixed')).trigger('click')
+    await wrapper.find('[data-testid="chat-toggle"]').trigger('click')
 
     expect(panel().classes()).toContain('translate-x-0')
     expect(panel().classes()).not.toContain('translate-x-full')
+    expect(panel().classes()).not.toContain('max-lg:invisible')
+    expect(wrapper.find('[data-testid="chat-toggle"]').exists()).toBe(false)
   })
 
   it('closes when the panel asks to', async () => {
     const wrapper = await mountView()
-    await wrapper.findAll('button').find((b) => b.classes().includes('fixed')).trigger('click')
+    await wrapper.find('[data-testid="chat-toggle"]').trigger('click')
 
     wrapper.findComponent(ChatPanel).vm.$emit('close')
     await wrapper.vm.$nextTick()
 
     expect(wrapper.find('.chat-stub').classes()).toContain('translate-x-full')
+    expect(wrapper.find('[data-testid="chat-toggle"]').exists()).toBe(true)
   })
 })
 
@@ -141,14 +161,14 @@ describe('jumping to the video', () => {
     expect(alert).not.toHaveBeenCalled()
   })
 
-  it('warns in demo mode instead of opening the modal', async () => {
+  it('warns when there is no uploaded video instead of opening the modal', async () => {
     const alert = vi.spyOn(window, 'alert').mockImplementation(() => {})
     const wrapper = await mountView({ prepare: (s) => { s.inventory = items } })
 
     play(wrapper, 4)
     await flushPromises()
 
-    expect(alert).toHaveBeenCalledWith(expect.stringContaining('demo mode'))
+    expect(alert).toHaveBeenCalledWith(expect.stringContaining('videos you uploaded'))
     expect(wrapper.findComponent(VideoModal).props('isOpen')).toBe(false)
     expect(seekAndPlay).not.toHaveBeenCalled()
   })

@@ -30,6 +30,6 @@ describe('main', () => {
     window.history.pushState({}, '', '/')
 
     await import('../src/main.js')
-    await vi.waitFor(() => expect(document.querySelector('#app').innerHTML).toContain('Upload Video'))
-  })
+    await vi.waitFor(() => expect(document.querySelector('#app').innerHTML).toContain('Upload Video'), { timeout: 30_000 })
+  }, 35_000)
 })

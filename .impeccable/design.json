@@ -1,0 +1,406 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-05T18:18:34Z",
+  "title": "Design System: Gemini Stylist",
+  "extensions": {
+    "colorMeta": {
+      "accent": {
+        "role": "primary",
+        "displayName": "Vermilion Tag",
+        "canonical": "#C73E22",
+        "tonalRamp": [
+          "#3a0000",
+          "#610000",
+          "#880000",
+          "#b02503",
+          "#d84e32",
+          "#ff7356",
+          "#ff997a",
+          "#ffbe9e"
+        ]
+      },
+      "accent-dark": {
+        "role": "primary",
+        "displayName": "Vermilion Tag (dark)",
+        "canonical": "#F0603F",
+        "tonalRamp": [
+          "#3c0000",
+          "#630000",
+          "#8a0000",
+          "#b22100",
+          "#da4b2a",
+          "#ff7150",
+          "#ff9774",
+          "#ffbd98"
+        ]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Cool Paper",
+        "canonical": "#EEF0F1",
+        "tonalRamp": [
+          "#0a0b0c",
+          "#242526",
+          "#414243",
+          "#606162",
+          "#818383",
+          "#a3a5a6",
+          "#c7c9ca",
+          "#edeff0"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Cold Surface",
+        "canonical": "#F8F9F9",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#242525",
+          "#414242",
+          "#606161",
+          "#818282",
+          "#a4a5a5",
+          "#c8c9c9",
+          "#eeefef"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Workshop Ink",
+        "canonical": "#16181A",
+        "tonalRamp": [
+          "#0a0b0d",
+          "#232527",
+          "#404245",
+          "#5f6164",
+          "#808385",
+          "#a3a5a8",
+          "#c7c9cc",
+          "#eceff2"
+        ]
+      },
+      "ink-soft": {
+        "role": "neutral",
+        "displayName": "Soft Ink",
+        "canonical": "#4F565B",
+        "tonalRamp": [
+          "#070c10",
+          "#20262a",
+          "#3c4348",
+          "#5b6267",
+          "#7c8389",
+          "#9ea6ac",
+          "#c2cad0",
+          "#e7f0f6"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "canonical": "#C9CED2",
+        "tonalRamp": [
+          "#080c0e",
+          "#222629",
+          "#3e4346",
+          "#5d6265",
+          "#7e8387",
+          "#a1a6aa",
+          "#c5cace",
+          "#eaeff3"
+        ]
+      },
+      "paper-dark": {
+        "role": "neutral",
+        "displayName": "Cool Paper (dark)",
+        "canonical": "#141516",
+        "tonalRamp": [
+          "#0a0b0c",
+          "#242526",
+          "#414243",
+          "#606163",
+          "#818284",
+          "#a4a5a6",
+          "#c8c9cb",
+          "#edeff0"
+        ]
+      },
+      "surface-dark": {
+        "role": "neutral",
+        "displayName": "Cold Surface (dark)",
+        "canonical": "#1C1D1F",
+        "tonalRamp": [
+          "#0a0b0d",
+          "#242527",
+          "#414244",
+          "#606164",
+          "#818285",
+          "#a4a5a8",
+          "#c8c9cc",
+          "#edeef1"
+        ]
+      },
+      "ink-dark": {
+        "role": "neutral",
+        "displayName": "Workshop Ink (dark)",
+        "canonical": "#ECEEEF",
+        "tonalRamp": [
+          "#0a0b0c",
+          "#242526",
+          "#414243",
+          "#606162",
+          "#818383",
+          "#a3a5a6",
+          "#c7c9ca",
+          "#edeff0"
+        ]
+      },
+      "ink-soft-dark": {
+        "role": "neutral",
+        "displayName": "Soft Ink (dark)",
+        "canonical": "#A5ACB1",
+        "tonalRamp": [
+          "#070c0f",
+          "#20262a",
+          "#3d4347",
+          "#5c6267",
+          "#7d8388",
+          "#9fa6ab",
+          "#c3cacf",
+          "#e8f0f5"
+        ]
+      },
+      "line-dark": {
+        "role": "neutral",
+        "displayName": "Hairline (dark)",
+        "canonical": "#34383B",
+        "tonalRamp": [
+          "#080c0e",
+          "#222628",
+          "#3e4346",
+          "#5d6265",
+          "#7e8386",
+          "#a1a6a9",
+          "#c5cace",
+          "#eaeff3"
+        ]
+      },
+      "screen": {
+        "role": "neutral",
+        "displayName": "Screen Black",
+        "canonical": "#0B0C0D",
+        "tonalRamp": [
+          "#0a0b0c",
+          "#242526",
+          "#414243",
+          "#606163",
+          "#818284",
+          "#a4a5a7",
+          "#c8c9cb",
+          "#edeff0"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Landing headline, two lines."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Wardrobe page title and loading status."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Garment subtype, panel titles, wordmark, dropzone label."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Chat messages and descriptions."
+      },
+      "label": {
+        "displayName": "Tag Data",
+        "purpose": "Mono data lines, file info, counts, hostnames, temperatures."
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "All entry and sheet transitions."
+      },
+      {
+        "name": "rise",
+        "value": "0.7s ease-out, 14px upward fade, 70ms stagger",
+        "purpose": "Hero copy entry."
+      },
+      {
+        "name": "unfurl",
+        "value": "0.8s ease-out clip-path inset reveal, 90ms stagger",
+        "purpose": "Swatch rack bands entering."
+      },
+      {
+        "name": "scan",
+        "value": "2.8s linear infinite translateY(-100% to 0)",
+        "purpose": "Scan line over the video while it is being analyzed."
+      },
+      {
+        "name": "press",
+        "value": "translateY(1px) on :active; 200ms color transition",
+        "purpose": "Tactile button feedback."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "md",
+        "value": "768px"
+      },
+      {
+        "name": "lg",
+        "value": "1024px"
+      },
+      {
+        "name": "xl",
+        "value": "1280px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one filled action per view; inverts to ink on hover.",
+      "html": "<button class=\"ds-btn-primary\">Analyze Wardrobe</button>",
+      "css": ".ds-btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:44px;padding:0 24px;font:500 16px var(--font-sans,'Geist Variable',system-ui,sans-serif);border-radius:0;cursor:pointer;transition:background-color .2s,color .2s;background:var(--accent,#c73e22);color:var(--accent-ink,#fff);border:0;}.ds-btn-primary:hover{background:var(--ink,#16181a);color:var(--paper,#eef0f1);}.ds-btn-primary:active{transform:translateY(1px);}.ds-btn-primary:focus-visible{outline:2px solid var(--accent,#c73e22);outline-offset:2px;}"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Secondary action with an ink border.",
+      "html": "<button class=\"ds-btn-outline\">Continue with 24 items</button>",
+      "css": ".ds-btn-outline{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:44px;padding:0 24px;font:500 16px var(--font-sans,'Geist Variable',system-ui,sans-serif);border-radius:0;cursor:pointer;transition:background-color .2s,color .2s;padding:0 20px;background:transparent;color:var(--ink,#16181a);border:1px solid var(--ink,#16181a);}.ds-btn-outline:hover{background:var(--ink,#16181a);color:var(--paper,#eef0f1);}.ds-btn-outline:active{transform:translateY(1px);}.ds-btn-outline:focus-visible{outline:2px solid var(--accent,#c73e22);outline-offset:2px;}"
+    },
+    {
+      "name": "Hang-Tag Card",
+      "kind": "card",
+      "refersTo": "hang-tag-card",
+      "description": "Garment card: cut-corner swatch of the garment color over a mono data list.",
+      "html": "<article class=\"ds-tag\"><div class=\"ds-tag-swatch\"></div><div class=\"ds-tag-body\"><h3>Oxford shirt</h3><p>Sky blue</p><dl><div><dt>Type</dt><dd>Top</dd></div><div><dt>Season</dt><dd>Summer</dd></div><div><dt>Formality</dt><dd>6/10</dd></div></dl></div></article>",
+      "css": ".ds-tag{width:220px;background:var(--surface,#f8f9f9);border:1px solid var(--line,#c9ced2);color:var(--ink,#16181a);font-family:'Geist Variable',system-ui,sans-serif;}.ds-tag:hover{border-color:var(--ink,#16181a);}.ds-tag-swatch{height:112px;background:#7f9bb5;border-bottom:1px solid var(--line,#c9ced2);clip-path:polygon(20px 0,100% 0,100% 100%,0 100%,0 20px);}.ds-tag-body{padding:12px;display:flex;flex-direction:column;gap:12px;}.ds-tag h3{margin:0;font:600 18px/1.25 'Bricolage Grotesque Variable',system-ui,sans-serif;}.ds-tag p{margin:2px 0 0;font-size:14px;color:var(--ink-soft,#4f565b);}.ds-tag dl{margin:0;padding-top:8px;border-top:1px solid var(--line,#c9ced2);font:12px 'Geist Mono Variable',ui-monospace,monospace;display:flex;flex-direction:column;gap:4px;}.ds-tag dl div{display:flex;justify-content:space-between;}.ds-tag dt{color:var(--ink-soft,#4f565b);}.ds-tag dd{margin:0;}"
+    },
+    {
+      "name": "Source Card",
+      "kind": "card",
+      "refersTo": "hang-tag-card",
+      "description": "Shopping source: logo band, title, mono hostname, outline link.",
+      "html": "<div class=\"ds-src\"><div class=\"ds-src-logo\"></div><div class=\"ds-src-body\"><h4>Slim chino trousers</h4><p>example.com</p><a href=\"#\">View at store</a></div></div>",
+      "css": ".ds-src{width:176px;border:1px solid var(--line,#c9ced2);background:var(--surface,#f8f9f9);color:var(--ink,#16181a);font-family:'Geist Variable',system-ui,sans-serif;}.ds-src:hover{border-color:var(--ink,#16181a);}.ds-src-logo{height:80px;background:var(--paper,#eef0f1);border-bottom:1px solid var(--line,#c9ced2);}.ds-src-body{padding:12px;display:flex;flex-direction:column;}.ds-src h4{margin:0 0 4px;font:500 14px/1.25 'Geist Variable',system-ui,sans-serif;}.ds-src p{margin:0 0 12px;font:12px 'Geist Mono Variable',ui-monospace,monospace;color:var(--ink-soft,#4f565b);}.ds-src a{display:flex;align-items:center;justify-content:center;height:44px;border:1px solid var(--ink,#16181a);color:var(--ink,#16181a);font-size:14px;font-weight:500;text-decoration:none;}.ds-src a:hover{background:var(--ink,#16181a);color:var(--paper,#eef0f1);}.ds-src a:focus-visible{outline:2px solid var(--accent,#c73e22);outline-offset:2px;}"
+    },
+    {
+      "name": "Chat Input",
+      "kind": "input",
+      "refersTo": "chat-input",
+      "description": "48px square field with an accent send button inside.",
+      "html": "<form class=\"ds-chat\"><input placeholder=\"Ask for outfit advice...\" aria-label=\"Message the stylist\"><button type=\"button\" aria-label=\"Send\">&#8593;</button></form>",
+      "css": ".ds-chat{position:relative;width:320px;}.ds-chat input{box-sizing:border-box;width:100%;height:48px;padding:0 56px 0 16px;border:1px solid var(--line,#c9ced2);border-radius:0;background:var(--paper,#eef0f1);color:var(--ink,#16181a);font:16px 'Geist Variable',system-ui,sans-serif;caret-color:var(--accent,#c73e22);}.ds-chat input::placeholder{color:var(--ink-soft,#4f565b);}.ds-chat input:focus{border-color:var(--ink,#16181a);outline:2px solid var(--accent,#c73e22);outline-offset:2px;}.ds-chat button{position:absolute;right:4px;top:4px;width:40px;height:40px;border:0;background:var(--accent,#c73e22);color:var(--accent-ink,#fff);cursor:pointer;}.ds-chat button:hover{background:var(--ink,#16181a);color:var(--paper,#eef0f1);}"
+    },
+    {
+      "name": "Suggestion Row",
+      "kind": "chip",
+      "refersTo": "suggestion-row",
+      "description": "Bordered rectangular prompt row, never a pill.",
+      "html": "<button class=\"ds-row\">Work / Office Look</button>",
+      "css": ".ds-row{min-height:44px;padding:8px 12px;border:1px solid var(--line,#c9ced2);border-radius:0;background:var(--surface,#f8f9f9);color:var(--ink,#16181a);font:14px 'Geist Variable',system-ui,sans-serif;text-align:left;cursor:pointer;transition:border-color .2s;}.ds-row:hover{border-color:var(--ink,#16181a);}.ds-row:active{transform:translateY(1px);}.ds-row:focus-visible{outline:2px solid var(--accent,#c73e22);outline-offset:2px;}"
+    },
+    {
+      "name": "Chat Messages",
+      "kind": "custom",
+      "refersTo": "user-message",
+      "description": "Stylist: accent rule on the left, no fill. User: solid ink block.",
+      "html": "<div class=\"ds-msgs\"><div class=\"ds-msg-user\">What should I wear to a dinner?</div><div class=\"ds-msg-stylist\">Go with the navy shirt and grey trousers.</div></div>",
+      "css": ".ds-msgs{display:flex;flex-direction:column;gap:24px;width:320px;font:16px/1.625 'Geist Variable',system-ui,sans-serif;color:var(--ink,#16181a);}.ds-msg-user{align-self:flex-end;background:var(--ink,#16181a);color:var(--paper,#eef0f1);padding:12px 16px;}.ds-msg-stylist{border-left:1px solid var(--accent,#c73e22);padding-left:16px;}"
+    },
+    {
+      "name": "Dropzone",
+      "kind": "custom",
+      "refersTo": "button-outline",
+      "description": "Signature upload target: surface block, ink border, accent glyph square.",
+      "html": "<button class=\"ds-drop\"><span class=\"ds-drop-ico\">&#8593;</span><span><b>Upload Video</b><i>or drag and drop</i><code>MP4, MOV up to 50MB</code></span></button>",
+      "css": ".ds-drop{display:flex;gap:16px;align-items:flex-start;width:100%;max-width:420px;padding:28px 24px;border:1px solid var(--ink,#16181a);border-radius:0;background:var(--surface,#f8f9f9);color:var(--ink,#16181a);text-align:left;cursor:pointer;transition:background-color .2s;font-family:'Geist Variable',system-ui,sans-serif;}.ds-drop:hover{background:var(--paper,#eef0f1);}.ds-drop:focus-visible{outline:2px solid var(--accent,#c73e22);outline-offset:2px;}.ds-drop-ico{display:flex;align-items:center;justify-content:center;flex:none;width:48px;height:48px;background:var(--accent,#c73e22);color:var(--accent-ink,#fff);font-size:24px;}.ds-drop b{display:block;font:600 20px 'Bricolage Grotesque Variable',system-ui,sans-serif;}.ds-drop i{display:block;font-style:normal;color:var(--ink-soft,#4f565b);}.ds-drop code{display:block;margin-top:12px;font:12px 'Geist Mono Variable',ui-monospace,monospace;color:var(--ink-soft,#4f565b);}"
+    },
+    {
+      "name": "Swatch Rack",
+      "kind": "custom",
+      "refersTo": "hang-tag-card",
+      "description": "Edge-to-edge weighted color bands; garment colors or sample palette.",
+      "html": "<div class=\"ds-rack\"><div style=\"flex-grow:3;background:#1e2a44\"></div><div style=\"flex-grow:2;background:#6b7a4f\"></div><div style=\"flex-grow:4;background:#b5532f\"></div><div style=\"flex-grow:2;background:#7f9bb5\"></div><div style=\"flex-grow:3;background:#d9d4c7\"></div></div>",
+      "css": ".ds-rack{display:flex;flex-direction:column;width:160px;height:280px;border-left:1px solid var(--line,#c9ced2);}.ds-rack div{min-height:0;}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Swatch Book",
+    "overview": "**Creative North Star: \"The Swatch Book\"**\n\nThe wardrobe is a swatch book and the interface is the binder around it. Every garment is a flat block of its own color; everything else is cold-neutral, square-cornered, hairline-ruled and quiet, so the user's colors are the only saturated content on screen. A single vermilion accent marks the one action, the focus, and the highlighted state. The interface reads like a tailor's workshop tag: color on top, a small monospaced data line underneath.\n\nDensity is medium: this is a tool used every morning, not a gallery. Layout is asymmetric on the landing (text left, a tall rack of color bands right) and a plain workbench in the app (even grid of swatch cards beside a fixed chat column). Motion is functional only: staggered entry, a scan line while the video is read, a 1px press.\n\nThe system rejects the generic AI-tool look: dark gradient landings, glass panels, rounded chat bubbles, glow, and emoji standing in for images.",
+    "keyCharacteristics": [
+      "One theme with automatic dark variant via `prefers-color-scheme`; the same tokens swap, nothing else changes.",
+      "Radius is 0 everywhere. Depth comes from 1px hairlines and tone, never shadows.",
+      "Garment and sample colors are data, not tokens; they are the only saturated fill besides the accent.",
+      "Three families with fixed jobs: display, text, mono for tag data.",
+      "Icons come from Phosphor (regular weight, fill only for the play glyph)."
+    ],
+    "rules": [
+      {
+        "name": "The Only Saturation Rule",
+        "body": "Saturated color on screen is either the accent or a garment's own color. Never tint chrome, backgrounds or icons with hue.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Voice Rule",
+        "body": "The accent marks the primary action, focus, and the active or highlighted state. A second filled accent button on the same view is wrong.",
+        "section": "colors"
+      },
+      {
+        "name": "The Fixed Screen Rule",
+        "body": "Video surfaces use `screen` in both themes; do not reuse it for ordinary panels.",
+        "section": "colors"
+      },
+      {
+        "name": "The Stamped Data Rule",
+        "body": "Numbers, file info, prices, temperatures, hostnames and tag key/values are set in the mono face; prose and headings never are.",
+        "section": "typography"
+      },
+      {
+        "name": "The Weight Not Italic Rule",
+        "body": "Emphasis is weight (500 to 600) within the same family; display weight is always 600.",
+        "section": "typography"
+      },
+      {
+        "name": "The No Shadow Rule",
+        "body": "If something needs to stand out, change its border or fill; never add a shadow.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** keep radius at 0 and separate regions with 1px `line` borders.",
+      "**Do** let the garment color be the largest saturated area on any card or band.",
+      "**Do** use the accent only for the primary action, focus, drag-over, scan/progress and the highlighted garment.",
+      "**Do** set data (counts, seasons, formality, hostnames, temperatures) in the mono face.",
+      "**Do** invert to ink on hover for buttons and give every interactive control a 44px minimum target and the 2px accent focus outline.",
+      "**Do** use Phosphor icons at 18 to 26px with `aria-hidden` when decorative.",
+      "**Do** swap tokens through `prefers-color-scheme` and keep `screen` fixed for video."
+    ],
+    "donts": [
+      "**Don't** add shadows, blur, gradients, glass panels, glow or text gradients.",
+      "**Don't** use rounded bubbles, pills or circular avatars; the world is square.",
+      "**Don't** use emoji or hand-drawn SVG as imagery; the garment color is the image.",
+      "**Don't** introduce a second hue for chrome (no indigo, violet, amber, cream) or pure `#000` and pure `#fff` surfaces.",
+      "**Don't** use scale-on-hover, bounce or looping decorative motion.",
+      "**Don't** set Bricolage in the mono role or mono in headings."
+    ]
+  }
+}
