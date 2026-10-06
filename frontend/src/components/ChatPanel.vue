@@ -1,63 +1,58 @@
 <template>
-  <aside class="flex flex-col border-l border-slate-100 shadow-2xl bg-white">
-    <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-white/95 backdrop-blur h-16 shrink-0">
-      <div class="flex items-center gap-3">
-        <!-- Mobile Close Button -->
-        <button @click="$emit('close')" class="lg:hidden p-1 -ml-2 text-slate-400 hover:text-slate-600">
-             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+  <aside class="flex flex-col bg-surface">
+    <div class="flex h-16 shrink-0 items-center justify-between border-b border-line px-5">
+      <div class="flex items-center gap-2">
+        <button
+          type="button"
+          class="-ml-2 flex h-11 w-11 items-center justify-center text-ink-soft transition-colors hover:text-ink lg:hidden"
+          aria-label="Close chat"
+          @click="$emit('close')"
+        >
+          <PhCaretLeft :size="22" aria-hidden="true" />
         </button>
-        <div class="w-10 h-10 rounded-full bg-linear-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-white text-sm font-bold shadow-md">
-          AI
-        </div>
         <div>
-          <h3 class="font-bold text-slate-800 text-lg leading-tight">Stylist Assistant</h3>
-          <div class="flex items-center gap-2">
-            <p class="text-[11px] text-green-500 font-medium flex items-center gap-1">
-              <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span> Online
-            </p>
-            <p v-if="isThinking" class="text-[11px] text-indigo-500 font-medium animate-pulse">
-              • Thinking... 👗
-            </p>
-          </div>
+          <h3 class="font-display text-lg font-semibold leading-tight">Stylist Assistant</h3>
+          <p v-if="isThinking" class="font-mono text-xs text-ink-soft" role="status">Thinking...</p>
         </div>
       </div>
 
-      <!-- Weather Widget -->
-      <div v-if="store.weather" class="flex flex-col items-end">
-          <div class="flex items-center gap-1.5 text-slate-700 bg-slate-50 px-2.5 py-1 rounded-full border border-slate-100 shadow-sm">
-              <span class="text-lg">{{ getWeatherEmoji(store.weather.code) }}</span>
-              <span class="text-xs font-bold font-mono">{{ Math.round(store.weather.temp) }}°C</span>
-          </div>
-          <span class="text-[9px] text-slate-400 font-medium pr-1">{{ store.weather.description }}</span>
+      <div v-if="store.weather" data-testid="weather" class="flex flex-col items-end text-right">
+        <div class="flex items-center gap-1.5">
+          <component :is="weatherIcon" :size="20" aria-hidden="true" />
+          <span class="font-mono text-sm font-medium">{{ Math.round(store.weather.temp) }}°C</span>
+        </div>
+        <span class="text-xs text-ink-soft">{{ store.weather.description }}</span>
       </div>
     </div>
 
-    <div class="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-50/50" id="chat-container">
-      <div v-if="store.messages.length === 0" class="text-center text-slate-400 text-sm mt-10 p-4">
-        <p>Ask me "What should I wear to a dinner?" or "Find me shoes that match this".</p>
-      </div>
+    <div id="chat-container" class="flex-1 space-y-6 overflow-y-auto bg-paper p-5">
+      <p v-if="store.messages.length === 0" class="max-w-[40ch] text-ink-soft">
+        Ask me "What should I wear to a dinner?" or "Find me shoes that match this".
+      </p>
 
-      <div v-for="(msg, index) in store.messages" :key="index" :class="['flex w-full', msg.role === 'user' ? 'justify-end' : 'justify-start']">
-        <div 
+      <div
+        v-for="(msg, index) in store.messages"
+        :key="index"
+        :data-testid="'message-' + msg.role"
+        :class="['flex w-full', msg.role === 'user' ? 'justify-end' : 'justify-start']"
+      >
+        <div
           :class="[
-            'max-w-[85%] rounded-2xl px-5 py-4 text-base leading-relaxed shadow-sm relative group',
-            msg.role === 'user' 
-              ? 'bg-slate-900 text-white rounded-br-none' 
-              : 'bg-white text-slate-700 border border-slate-100 rounded-bl-none'
+            'max-w-[92%] text-base leading-relaxed',
+            msg.role === 'user' ? 'bg-ink px-4 py-3 text-paper' : 'border-l border-accent pl-4'
           ]"
         >
-          <div v-html="formatMessage(msg.content)"></div>
-          
-          <div v-if="msg.sources && msg.sources.length > 0" class="mt-5 pt-4 border-t border-slate-100">
-            <div class="flex items-center gap-2 mb-3">
-                <span class="text-xs font-bold text-slate-400 uppercase tracking-wide">Shopping Sources</span>
-                <span class="px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-600 text-[9px] font-bold border border-indigo-100">{{ msg.sources.length }}</span>
-            </div>
-            
-            <!-- Shopping Carousel -->
-            <div class="flex gap-3 overflow-x-auto pb-4 -mx-2 px-2 scrollbar-hide snap-x">
+          <div data-testid="message-body" v-html="formatMessage(msg.content)"></div>
+
+          <div v-if="msg.sources && msg.sources.length > 0" class="mt-5">
+            <p class="mb-3 text-sm font-medium">
+              Shopping Sources
+              <span class="ml-1 font-mono text-xs text-ink-soft">{{ msg.sources.length }}</span>
+            </p>
+
+            <div class="-mx-1 flex snap-x gap-3 overflow-x-auto px-1 pb-3">
               <ShoppingCard
-                v-for="(source, sIndex) in msg.sources" 
+                v-for="(source, sIndex) in msg.sources"
                 :key="sIndex"
                 :source="source"
                 class="snap-start"
@@ -66,65 +61,74 @@
           </div>
         </div>
       </div>
-      
-      <div v-if="isThinking" class="flex w-full justify-start">
-        <div class="bg-white px-5 py-4 rounded-2xl rounded-bl-none border border-slate-100 shadow-sm flex gap-1">
-          <div class="w-2 h-2 rounded-full bg-slate-400 animate-bounce"></div>
-          <div class="w-2 h-2 rounded-full bg-slate-400 animate-bounce delay-75"></div>
-          <div class="w-2 h-2 rounded-full bg-slate-400 animate-bounce delay-150"></div>
-        </div>
+
+      <div v-if="isThinking" data-testid="thinking" class="w-full max-w-[70%] space-y-2 border-l border-accent pl-4" aria-hidden="true">
+        <div class="h-3 w-full animate-pulse bg-line"></div>
+        <div class="h-3 w-2/3 animate-pulse bg-line"></div>
       </div>
     </div>
 
-    <div class="p-6 bg-white border-t border-slate-100">
-      
-      <!-- Suggestion Chips -->
-      <div v-if="store.messages.filter(m => m.role === 'user').length === 0" class="flex flex-wrap gap-2 mb-4">
-        <button 
-            v-for="(chip, index) in suggestions" 
-            :key="index"
-            @click="sendMessage(chip)"
-            class="px-3 py-1.5 rounded-full border border-slate-200 bg-white text-xs font-medium text-slate-600 hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600 transition-all shadow-sm cursor-pointer animate-fade-in-up"
-            :style="{ animationDelay: `${index * 100}ms` }"
+    <div class="border-t border-line bg-surface p-5">
+      <div v-if="store.messages.filter(m => m.role === 'user').length === 0" class="mb-4 flex flex-wrap gap-2">
+        <button
+          v-for="chip in suggestions"
+          :key="chip"
+          type="button"
+          data-testid="chip"
+          class="min-h-11 border border-line bg-surface px-3 py-2 text-left text-sm transition-colors duration-200 hover:border-ink active:translate-y-px"
+          @click="sendMessage(chip)"
         >
-            {{ chip }}
+          {{ chip }}
         </button>
       </div>
 
-      <form @submit.prevent="sendMessage" class="relative">
-        <input 
-          v-model="newMessage" 
-          type="text" 
-          :placeholder="isThinking ? 'Stylist is thinking...' : 'Ask for outfit advice...'" 
-          class="w-full pl-6 pr-14 py-4 rounded-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all text-base text-slate-800 placeholder-slate-400 disabled:opacity-60 disabled:cursor-not-allowed"
+      <form class="relative" @submit.prevent="sendMessage">
+        <label for="chat-input" class="sr-only">Message the stylist</label>
+        <input
+          id="chat-input"
+          v-model="newMessage"
+          type="text"
+          :placeholder="isThinking ? 'Stylist is thinking...' : 'Ask for outfit advice...'"
+          class="h-12 w-full border border-line bg-paper pl-4 pr-14 text-base text-ink transition-colors focus:border-ink disabled:cursor-not-allowed disabled:opacity-60"
           :disabled="isThinking"
         >
-        <button 
-          type="submit" 
-          class="absolute right-2 top-2 p-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full transition-colors shadow-md hover:shadow-lg hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none" 
+        <button
+          type="submit"
+          class="absolute right-1 top-1 flex h-10 w-10 items-center justify-center bg-accent text-accent-ink transition-colors duration-200 hover:bg-ink hover:text-paper active:translate-y-px disabled:cursor-not-allowed disabled:bg-line disabled:text-ink-soft"
+          aria-label="Send message"
           :disabled="!newMessage.trim() || isThinking"
         >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M12 5l7 7-7 7"></path></svg>
+          <PhArrowUp :size="20" aria-hidden="true" />
         </button>
       </form>
-      <div class="text-center mt-3 flex justify-center items-center gap-2">
-        <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
-        <p class="text-[11px] text-slate-400">Powered by <strong>Gemini 3</strong> • Google Search Grounded</p>
-      </div>
+      <p class="mt-3 text-xs text-ink-soft">Powered by Gemini 3, grounded with Google Search</p>
     </div>
   </aside>
 </template>
 
 <script setup>
 import { ref, watch, nextTick, computed } from 'vue'
+import {
+  PhArrowUp,
+  PhCaretLeft,
+  PhCloud,
+  PhCloudFog,
+  PhCloudRain,
+  PhLightning,
+  PhSnowflake,
+  PhSun,
+  PhThermometer,
+  PhUmbrella,
+} from '@phosphor-icons/vue'
 import { useWardrobeStore } from '../stores/wardrobe'
 import ShoppingCard from './ShoppingCard.vue'
+
+defineEmits(['close'])
 
 const store = useWardrobeStore()
 const newMessage = ref('')
 const isThinking = ref(false)
 
-// Auto-scroll chat
 watch(() => store.messages.length, async () => {
     await nextTick()
     const container = document.getElementById('chat-container')
@@ -132,17 +136,14 @@ watch(() => store.messages.length, async () => {
 })
 
 const sendMessage = async (textInput) => {
-    // If textInput is a string (from chip), use it. Otherwise use model value.
     const textToSend = (typeof textInput === 'string') ? textInput : newMessage.value;
 
     if (!textToSend.trim() || isThinking.value) return;
-    
-    // Updates UI
-    if (typeof textInput !== 'string') newMessage.value = ''; // Only clear input if sent from input
-    
+
+    if (typeof textInput !== 'string') newMessage.value = '';
+
     isThinking.value = true;
-    
-    // Auto-scroll to bottom immediately
+
     await nextTick()
     const container = document.getElementById('chat-container')
     if (container) container.scrollTop = container.scrollHeight
@@ -160,50 +161,39 @@ const escapeHtml = (text) => text
 
 const formatMessage = (content) => {
     if (!content) return '';
-    // Format bold
-    let formatted = escapeHtml(content).replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-indigo-900">$1</strong>');
-    // Format *text* as italic
-    formatted = formatted.replace(/\*(.*?)\*/g, '<em class="text-slate-600">$1</em>');
-    // Line breaks
+    let formatted = escapeHtml(content).replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold">$1</strong>');
+    formatted = formatted.replace(/\*(.*?)\*/g, '<em class="italic">$1</em>');
     formatted = formatted.replace(/\n/g, '<br>');
     return formatted;
 }
 
-const getHostname = (uri) => {
-    try {
-        return new URL(uri).hostname;
-    } catch (e) {
-        return uri;
-    }
-}
-
-const getWeatherEmoji = (code) => {
-    if (code === 0) return "☀️";
-    if (code >= 1 && code <= 3) return "☁️";
-    if (code >= 45 && code <= 48) return "🌫️";
-    if (code >= 51 && code <= 67) return "🌧️";
-    if (code >= 71 && code <= 77) return "❄️";
-    if (code >= 80 && code <= 82) return "🌦️";
-    if (code >= 95) return "⚡";
-    return "🌡️";
-}
+const weatherIcon = computed(() => {
+    const code = store.weather?.code
+    if (code === 0) return PhSun
+    if (code >= 1 && code <= 3) return PhCloud
+    if (code >= 45 && code <= 48) return PhCloudFog
+    if (code >= 51 && code <= 67) return PhCloudRain
+    if (code >= 71 && code <= 77) return PhSnowflake
+    if (code >= 80 && code <= 82) return PhUmbrella
+    if (code >= 95) return PhLightning
+    return PhThermometer
+})
 
 const suggestions = computed(() => {
     const list = [
-        "💼 Work / Office Look",
-        "🎉 Party / Night Out",
-        "✨ Casual Weekend"
+        "Work / Office Look",
+        "Party / Night Out",
+        "Casual Weekend"
     ];
-    
-    // Add weather context if available
+
     if (store.weather) {
         const temp = Math.round(store.weather.temp);
         const condition = store.weather.description || 'Current Weather';
-        list.unshift(`☁️ Outfit for today (${condition}, ${temp}°C)`);
+        list.unshift(`Outfit for today (${condition}, ${temp}°C)`);
     } else {
-        list.unshift("📅 Outfit for today");
+        list.unshift("Outfit for today");
     }
-    
+
     return list;
 })
 </script>

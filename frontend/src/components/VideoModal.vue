@@ -1,17 +1,31 @@
 <template>
-  <div v-if="isOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" @click.self="close">
-    <div class="bg-slate-900 rounded-2xl overflow-hidden shadow-2xl max-w-4xl w-full relative group flex justify-center items-center">
-      <button @click="close" class="absolute top-4 right-4 z-10 p-2 bg-black/50 text-white rounded-full hover:bg-white/20 transition-colors">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+  <div
+    v-if="isOpen"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-screen/90 p-4"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Garment video"
+    @click.self="close"
+    @keydown.esc="close"
+  >
+    <div class="relative flex w-full max-w-4xl items-center justify-center bg-screen">
+      <button
+        ref="closeButton"
+        type="button"
+        class="absolute right-3 top-3 z-10 flex h-11 w-11 items-center justify-center bg-paper text-ink transition-colors duration-200 hover:bg-accent hover:text-accent-ink"
+        aria-label="Close video"
+        @click="close"
+      >
+        <PhX :size="22" aria-hidden="true" />
       </button>
-      
-      <video 
-        ref="videoPlayer" 
+
+      <video
+        ref="videoPlayer"
         :src="videoUrl"
-        controls 
+        controls
         autoplay
         playsinline
-        class="w-full h-auto max-h-[80vh] object-contain bg-transparent rounded-lg shadow-2xl"
+        class="h-auto max-h-[80dvh] w-full bg-screen object-contain"
       >
         Your browser does not support the video tag.
       </video>
@@ -20,7 +34,8 @@
 </template>
 
 <script setup>
-import { ref, nextTick } from 'vue'
+import { ref, watch, nextTick } from 'vue'
+import { PhX } from '@phosphor-icons/vue'
 
 const props = defineProps({
   isOpen: {
@@ -36,6 +51,13 @@ const props = defineProps({
 const emit = defineEmits(['close'])
 
 const videoPlayer = ref(null)
+const closeButton = ref(null)
+
+watch(() => props.isOpen, async (open) => {
+  if (!open) return
+  await nextTick()
+  closeButton.value?.focus()
+})
 
 const close = () => {
   if (videoPlayer.value) {

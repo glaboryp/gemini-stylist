@@ -16,7 +16,8 @@ describe('ShoppingCard', () => {
     const link = wrapper.find('a')
     expect(link.attributes('href')).toBe('https://www.zara.com/es/shirt')
     expect(link.attributes('target')).toBe('_blank')
-    expect(link.text()).toBe('Buy Now')
+    expect(link.attributes('rel')).toBe('noopener noreferrer')
+    expect(link.text()).toBe('View at store')
   })
 
   it('uses the Google favicon service first', () => {
@@ -82,15 +83,13 @@ describe('ShoppingCard', () => {
       expect(wrapper.find('img').attributes('src') || '').toBe('')
     })
 
-    it('shows an emoji placeholder after the third error, only once', async () => {
+    it('shows an icon placeholder after the third error and removes the image', async () => {
       const wrapper = mountCard({ title: 'x', uri: 'https://hm.com/a' })
 
-      for (let i = 0; i < 4; i++) await wrapper.find('img').trigger('error')
+      for (let i = 0; i < 3; i++) await wrapper.find('img').trigger('error')
 
-      const placeholders = wrapper.findAll('.fallback-icon')
-      expect(placeholders).toHaveLength(1)
-      expect(placeholders[0].text()).toBe('🛍️')
-      expect(wrapper.find('img').element.style.display).toBe('none')
+      expect(wrapper.findAll('[data-testid="logo-fallback"]')).toHaveLength(1)
+      expect(wrapper.find('img').exists()).toBe(false)
     })
   })
 })

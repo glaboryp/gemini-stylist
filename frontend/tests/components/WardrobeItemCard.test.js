@@ -20,7 +20,7 @@ const mountCard = (item = {}) =>
     global: { plugins: [freshPinia()] },
   })
 
-const barColor = (wrapper) => wrapper.find('div.absolute.top-0').element.style.backgroundColor
+const swatchColor = (wrapper) => wrapper.find('[data-testid="swatch"]').element.style.backgroundColor
 
 const asRgb = (color) => {
   const probe = document.createElement('div')
@@ -35,31 +35,31 @@ describe('WardrobeItemCard', () => {
     const wrapper = mountCard()
 
     expect(wrapper.text()).toContain('Blouse')
-    expect(wrapper.text()).toContain('White • Top')
-    expect(wrapper.text()).toContain('Summer')
+    expect(wrapper.text()).toContain('White')
+    expect(wrapper.find('dl').text()).toContain('Top')
+    expect(wrapper.find('dl').text()).toContain('Summer')
     expect(wrapper.text()).toContain('5/10')
-    expect(wrapper.text()).toContain('👚')
     expect(wrapper.attributes('id')).toBe('item-i1')
   })
 
-  it('falls back to a default emoji', () => {
-    expect(mountCard({ emoji: undefined }).text()).toContain('👔')
+  it('does not use the emoji as the garment image', () => {
+    expect(mountCard().text()).not.toContain('👚')
   })
 
   describe('color name', () => {
     it.each([
-      ['a string', 'Burgundy', 'Burgundy • Top'],
-      ['an object name', { name: 'Navy', hex: '#000080' }, 'Navy • Top'],
-      ['an object label', { label: 'Olive' }, 'Olive • Top'],
-      ['an object without a name', { hex: '#000' }, 'Unknown Color • Top'],
-      ['a missing value', undefined, 'Unknown Color • Top'],
-      ['a non-string primitive', 42, 'Unknown Color • Top'],
+      ['a string', 'Burgundy', 'Burgundy'],
+      ['an object name', { name: 'Navy', hex: '#000080' }, 'Navy'],
+      ['an object label', { label: 'Olive' }, 'Olive'],
+      ['an object without a name', { hex: '#000' }, 'Unknown Color'],
+      ['a missing value', undefined, 'Unknown Color'],
+      ['a non-string primitive', 42, 'Unknown Color'],
     ])('handles %s', (_label, color, expected) => {
-      expect(mountCard({ primary_color: color }).text()).toContain(expected)
+      expect(mountCard({ primary_color: color }).find('h3 + p').text()).toBe(expected)
     })
   })
 
-  describe('color bar', () => {
+  describe('swatch', () => {
     it.each([
       ['a hex string', '#ff0000', '#ff0000'],
       ['a description containing a hex', 'navy blue (#1a2b3c)', '#1a2b3c'],
@@ -67,11 +67,11 @@ describe('WardrobeItemCard', () => {
       ['an object hex', { hex: '#00ff00' }, '#00ff00'],
       ['an object code', { code: '#0000ff' }, '#0000ff'],
       ['an object color', { color: '#123456' }, '#123456'],
-      ['an object with no color keys', { name: 'x' }, '#e2e8f0'],
-      ['a missing value', undefined, '#e2e8f0'],
-      ['a non-string primitive', 42, '#e2e8f0'],
+      ['an object with no color keys', { name: 'x' }, '#c9ced2'],
+      ['a missing value', undefined, '#c9ced2'],
+      ['a non-string primitive', 42, '#c9ced2'],
     ])('uses %s', (_label, color, expected) => {
-      expect(barColor(mountCard({ primary_color: color }))).toBe(asRgb(expected))
+      expect(swatchColor(mountCard({ primary_color: color }))).toBe(asRgb(expected))
     })
   })
 
@@ -80,11 +80,12 @@ describe('WardrobeItemCard', () => {
       const wrapper = mountCard()
       const store = useWardrobeStore()
 
-      expect(wrapper.classes()).not.toContain('scale-[1.02]')
+      expect(wrapper.attributes('data-highlighted')).toBe('false')
 
       store.highlightedItems = ['i1']
       return wrapper.vm.$nextTick().then(() => {
-        expect(wrapper.classes()).toContain('scale-[1.02]')
+        expect(wrapper.attributes('data-highlighted')).toBe('true')
+        expect(wrapper.classes()).toContain('ring-accent')
       })
     })
 
@@ -93,7 +94,7 @@ describe('WardrobeItemCard', () => {
       useWardrobeStore().highlightedItems = ['other']
       await wrapper.vm.$nextTick()
 
-      expect(wrapper.classes()).not.toContain('scale-[1.02]')
+      expect(wrapper.attributes('data-highlighted')).toBe('false')
     })
   })
 

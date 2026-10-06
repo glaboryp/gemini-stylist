@@ -1,60 +1,56 @@
 <template>
-  <div 
-    :class="[
-      'group relative bg-white rounded-2xl shadow-sm transition-all duration-300 ease-out overflow-hidden border flex flex-col',
-      isHighlighted ? 'border-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.5)] ring-2 ring-amber-100 scale-[1.02]' : 'border-slate-50 hover:shadow-xl hover:-translate-y-1'
-    ]"
+  <article
     :id="'item-' + item.id"
+    :data-highlighted="isHighlighted"
+    class="group relative flex flex-col border bg-surface transition-colors duration-200"
+    :class="isHighlighted ? 'z-10 border-accent ring-2 ring-accent' : 'border-line'"
   >
-    <!-- Color Indicator (Border visual) -->
-    <div class="absolute top-0 inset-x-0 h-1" :style="{ backgroundColor: getValidColor(item.primary_color) }"></div>
-
-    <!-- Card Body -->
-    <div class="p-5 flex-1 flex flex-col items-center text-center">
-      <!-- Emoji Hero -->
-      <div class="w-20 h-20 rounded-full bg-slate-50 flex items-center justify-center mb-3 shadow-inner group-hover:scale-110 transition-transform duration-300">
-        <span class="text-5xl filter drop-shadow-md cursor-default">{{ item.emoji || '👔' }}</span>
-      </div>
-
-      <!-- Title & Subtitle -->
-      <h3 class="font-serif text-base font-medium text-slate-900 mb-1 leading-tight">
-        {{ item.subtype }}
-      </h3>
-      <p class="text-[10px] uppercase tracking-wide text-slate-400 font-medium mb-3">
-        {{ getColorName(item.primary_color) }} • {{ item.type }}
-      </p>
-
-      <!-- Badges -->
-      <div class="flex flex-wrap justify-center gap-1 mb-3">
-        <span class="px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[9px] font-medium tracking-wide uppercase border border-slate-200">
-          {{ item.season }}
-        </span>
-      </div>
-    </div>
-
-    <!-- Actions / Footer -->
-    <div class="px-4 pb-4 pt-0 w-full mt-auto flex justify-between items-center z-10">
-      <div class="flex items-center gap-1 text-[10px] text-slate-400" title="Formality Score">
-        <span>⚖️</span> 
-        <span>{{ item.formality }}/10</span>
-      </div>
-
-      <!-- Play Button -->
-      <button 
+    <div
+      data-testid="swatch"
+      class="relative h-28 border-b border-line [clip-path:polygon(20px_0,100%_0,100%_100%,0_100%,0_20px)] sm:h-36"
+      :style="{ backgroundColor: getValidColor(item.primary_color) }"
+    >
+      <button
         v-if="item.timestamp_seconds !== undefined"
-        @click.stop="$emit('play-video', item.timestamp_seconds)"
-        class="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-indigo-600 focus:opacity-100"
+        type="button"
+        class="absolute bottom-2 right-2 flex h-11 w-11 items-center justify-center bg-paper text-ink transition-colors duration-200 hover:bg-ink hover:text-paper active:translate-y-px"
         title="Show in video"
+        aria-label="Show in video"
+        @click.stop="$emit('play-video', item.timestamp_seconds)"
       >
-        <svg class="w-3 h-3 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        <PhPlay :size="18" weight="fill" aria-hidden="true" />
       </button>
     </div>
-  </div>
+
+    <div class="flex flex-1 flex-col gap-3 p-3">
+      <div>
+        <h3 class="font-display text-lg font-semibold leading-tight">{{ item.subtype }}</h3>
+        <p class="mt-0.5 text-sm text-ink-soft">{{ getColorName(item.primary_color) }}</p>
+      </div>
+
+      <dl class="mt-auto space-y-1 border-t border-line pt-2 font-mono text-xs">
+        <div class="flex justify-between gap-3">
+          <dt class="text-ink-soft">Type</dt>
+          <dd class="text-right">{{ item.type }}</dd>
+        </div>
+        <div class="flex justify-between gap-3">
+          <dt class="text-ink-soft">Season</dt>
+          <dd class="text-right">{{ item.season }}</dd>
+        </div>
+        <div class="flex justify-between gap-3" title="Formality score">
+          <dt class="text-ink-soft">Formality</dt>
+          <dd>{{ item.formality }}/10</dd>
+        </div>
+      </dl>
+    </div>
+  </article>
 </template>
 
 <script setup>
 import { computed } from 'vue'
+import { PhPlay } from '@phosphor-icons/vue'
 import { useWardrobeStore } from '../stores/wardrobe'
+import { getValidColor, getColorName } from '../utils/color'
 
 const props = defineProps({
   item: {
@@ -70,29 +66,4 @@ const store = useWardrobeStore()
 const isHighlighted = computed(() => {
     return store.highlightedItems.includes(props.item.id)
 })
-
-const getValidColor = (colorInput) => {
-    if (!colorInput) return '#e2e8f0';
-    
-    // Handle object if Gemini returns { name: '...', hex: '...' }
-    let colorString = colorInput;
-    if (typeof colorInput === 'object') {
-        colorString = colorInput.hex || colorInput.code || colorInput.color || '#e2e8f0';
-    }
-    
-    if (typeof colorString !== 'string') return '#e2e8f0';
-
-    const hexMatch = colorString.match(/#[0-9a-fA-F]{3,6}/);
-    if (hexMatch) return hexMatch[0];
-    return colorString;
-}
-
-const getColorName = (colorInput) => {
-    if (!colorInput) return 'Unknown Color';
-    if (typeof colorInput === 'string') return colorInput;
-    if (typeof colorInput === 'object') {
-        return colorInput.name || colorInput.label || 'Unknown Color';
-    }
-    return 'Unknown Color';
-}
 </script>

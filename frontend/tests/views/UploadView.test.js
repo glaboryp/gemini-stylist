@@ -46,25 +46,49 @@ describe('on load', () => {
     expect(wrapper.text()).toContain('Continue with 1 items')
   })
 
-  it('shows only the upload zone and demo button for an empty wardrobe', async () => {
+  it('shows only the upload zone for an empty wardrobe', async () => {
     const wrapper = await mountView()
 
     expect(wrapper.text()).toContain('Upload Video')
-    expect(wrapper.text()).toContain('Try Judge Demo Mode')
+    expect(wrapper.text()).not.toContain('Judge')
     expect(wrapper.text()).not.toContain('Continue with')
     expect(wrapper.text()).not.toContain('Analyze Wardrobe')
   })
 })
 
-describe('demo mode', () => {
-  it('loads the demo data and goes to the wardrobe', async () => {
+describe('swatch rack', () => {
+  const rackColors = (wrapper) => wrapper.findAll('aside span.font-mono').map((s) => s.text())
+
+  it('shows sample colors before anything is uploaded', async () => {
     const wrapper = await mountView()
-    const loadDemoData = vi.spyOn(store, 'loadDemoData')
 
-    await wrapper.findAll('button').find((b) => b.text().includes('Judge Demo')).trigger('click')
+    expect(wrapper.find('aside').text()).toContain('Sample colors')
+    expect(rackColors(wrapper)).toEqual(['#1e2a44', '#6b7a4f', '#b5532f', '#7f9bb5', '#d9d4c7', '#2a2a2c'])
+  })
 
-    expect(loadDemoData).toHaveBeenCalledOnce()
-    expect(router.push).toHaveBeenCalledWith('/wardrobe')
+  it('shows the wardrobe colors without repeating any', async () => {
+    const wrapper = await mountView({
+      prepare: (s) => {
+        s.inventory = [
+          { id: '1', primary_color: { hex: '#AA0000', name: 'Brick' } },
+          { id: '2', primary_color: '#aa0000' },
+          { id: '3', primary_color: { hex: '#00BB00', name: 'Grass' } },
+        ]
+      },
+    })
+
+    expect(wrapper.find('aside').text()).toContain('Your colors')
+    expect(rackColors(wrapper)).toEqual(['Brick', 'Grass'])
+  })
+
+  it('caps the rack at eight colors', async () => {
+    const wrapper = await mountView({
+      prepare: (s) => {
+        s.inventory = Array.from({ length: 12 }, (_, i) => ({ id: String(i), primary_color: `#${String(i).padStart(2, '0')}0000` }))
+      },
+    })
+
+    expect(rackColors(wrapper)).toHaveLength(8)
   })
 })
 
@@ -80,14 +104,42 @@ describe('saved wardrobe', () => {
     expect(router.push).toHaveBeenCalledWith('/wardrobe')
   })
 
-  it('clears the data', async () => {
+  const askToReset = async (wrapper) => {
+    await wrapper.findAll('button').find((b) => b.text().includes('Reset')).trigger('click')
+  }
+
+  it('asks for confirmation before clearing the data', async () => {
     const wrapper = await mountView({ prepare: withItems })
     const clearWardrobe = vi.spyOn(store, 'clearWardrobe')
 
-    await wrapper.findAll('button').find((b) => b.text().includes('Reset')).trigger('click')
+    await askToReset(wrapper)
+
+    expect(clearWardrobe).not.toHaveBeenCalled()
+    expect(wrapper.text()).toContain('Delete your wardrobe?')
+  })
+
+  it('clears the data once confirmed', async () => {
+    const wrapper = await mountView({ prepare: withItems })
+    const clearWardrobe = vi.spyOn(store, 'clearWardrobe')
+    await askToReset(wrapper)
+
+    await wrapper.findAll('button').find((b) => b.text().includes('Yes, delete')).trigger('click')
 
     expect(clearWardrobe).toHaveBeenCalledOnce()
     expect(wrapper.text()).not.toContain('Continue with')
+    expect(wrapper.text()).not.toContain('Delete your wardrobe?')
+  })
+
+  it('keeps the data when the confirmation is cancelled', async () => {
+    const wrapper = await mountView({ prepare: withItems })
+    const clearWardrobe = vi.spyOn(store, 'clearWardrobe')
+    await askToReset(wrapper)
+
+    await wrapper.findAll('button').find((b) => b.text().includes('Cancel')).trigger('click')
+
+    expect(clearWardrobe).not.toHaveBeenCalled()
+    expect(wrapper.text()).toContain('Continue with 2 items')
+    expect(wrapper.text()).toContain('Reset / Clear Data')
   })
 })
 
@@ -124,7 +176,7 @@ describe('choosing a file', () => {
   it('accepts a dropped file', async () => {
     const wrapper = await mountView()
 
-    await wrapper.find('.cursor-pointer').trigger('drop', { dataTransfer: { files: [video()] } })
+    await wrapper.find('[data-testid="dropzone"]').trigger('drop', { dataTransfer: { files: [video()] } })
 
     expect(wrapper.text()).toContain('closet.mp4')
   })
@@ -132,7 +184,7 @@ describe('choosing a file', () => {
   it('ignores a drop without files', async () => {
     const wrapper = await mountView()
 
-    await wrapper.find('.cursor-pointer').trigger('drop', { dataTransfer: { files: [] } })
+    await wrapper.find('[data-testid="dropzone"]').trigger('drop', { dataTransfer: { files: [] } })
 
     expect(wrapper.text()).not.toContain('Analyze Wardrobe')
   })
@@ -147,13 +199,44 @@ describe('choosing a file', () => {
     expect(wrapper.text()).toContain('second.mp4')
   })
 
+  it('highlights the drop zone while a file is dragged over it', async () => {
+    const wrapper = await mountView()
+    const zone = wrapper.find('[data-testid="dropzone"]')
+
+    await zone.trigger('dragover')
+    expect(zone.attributes('data-dragging')).toBe('true')
+
+    await zone.trigger('dragleave')
+    expect(zone.attributes('data-dragging')).toBe('false')
+  })
+
+  it('stops highlighting once the file is dropped', async () => {
+    const wrapper = await mountView()
+    const zone = wrapper.find('[data-testid="dropzone"]')
+    await zone.trigger('dragover')
+
+    await zone.trigger('drop', { dataTransfer: { files: [video()] } })
+
+    expect(zone.attributes('data-dragging')).toBe('false')
+  })
+
   it('opens the file picker when the drop zone is clicked', async () => {
     const wrapper = await mountView()
     const click = vi.spyOn(wrapper.find('input[type="file"]').element, 'click').mockImplementation(() => {})
 
-    await wrapper.find('.cursor-pointer').trigger('click')
+    await wrapper.find('[data-testid="dropzone"]').trigger('click')
 
     expect(click).toHaveBeenCalledOnce()
+  })
+
+  it('does nothing when the file input is not available', async () => {
+    const wrapper = await mountView()
+    const click = vi.spyOn(wrapper.find('input[type="file"]').element, 'click').mockImplementation(() => {})
+    wrapper.vm.$.setupState.fileInput = null
+
+    await wrapper.find('[data-testid="dropzone"]').trigger('click')
+
+    expect(click).not.toHaveBeenCalled()
   })
 
   it('does not bubble clicks on the input itself', async () => {
@@ -182,7 +265,7 @@ describe('analyzing', () => {
 
     expect(analyze).toHaveBeenCalledWith(expect.objectContaining({ name: 'closet.mp4' }))
     expect(wrapper.text()).toContain('Complete!')
-    expect(wrapper.text()).toContain('100% COMPLETE')
+    expect(wrapper.text()).toContain('100% complete')
     expect(router.push).not.toHaveBeenCalled()
 
     vi.advanceTimersByTime(500)
@@ -207,10 +290,10 @@ describe('analyzing', () => {
       return wrapper.find('h3').text()
     }
 
-    expect(await messageAfter(3000)).toBe('Detecting fabrics & textures...')
-    expect(await messageAfter(5000)).toBe('Analyzing color palette...')
+    expect(await messageAfter(3000)).toBe('Reading colors...')
+    expect(await messageAfter(5000)).toBe('Sorting by type and season...')
     expect(await messageAfter(5000)).toBe('Identifying clothing items...')
-    expect(await messageAfter(5000)).toBe('Generating style embeddings...')
+    expect(await messageAfter(5000)).toBe('Rating formality...')
   })
 
   it('caps the fake progress at 90%', async () => {
@@ -224,7 +307,7 @@ describe('analyzing', () => {
     vi.advanceTimersByTime(60_000)
     await wrapper.vm.$nextTick()
 
-    expect(wrapper.text()).toContain('90% COMPLETE')
+    expect(wrapper.text()).toContain('90% complete')
   })
 
   it('stays on the page when the analysis reports an error', async () => {
@@ -238,6 +321,22 @@ describe('analyzing', () => {
 
     expect(router.push).not.toHaveBeenCalled()
     expect(wrapper.text()).not.toContain('Complete!')
+    expect(vi.getTimerCount()).toBe(0)
+  })
+
+  it('shows the error to the user', async () => {
+    const wrapper = await mountView()
+
+    store.error = 'Error analyzing video. Please try again.'
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.find('[role="alert"]').text()).toBe('Error analyzing video. Please try again.')
+  })
+
+  it('shows no error by default', async () => {
+    const wrapper = await mountView()
+
+    expect(wrapper.find('[role="alert"]').exists()).toBe(false)
   })
 
   it('reports an unexpected failure', async () => {

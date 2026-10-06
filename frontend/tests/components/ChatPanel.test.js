@@ -1,5 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
+import {
+  PhCloud,
+  PhCloudFog,
+  PhCloudRain,
+  PhLightning,
+  PhSnowflake,
+  PhSun,
+  PhThermometer,
+  PhUmbrella,
+} from '@phosphor-icons/vue'
 import ChatPanel from '../../src/components/ChatPanel.vue'
 import ShoppingCard from '../../src/components/ShoppingCard.vue'
 import { useWardrobeStore } from '../../src/stores/wardrobe'
@@ -20,7 +30,9 @@ const setup = () => {
 
 const input = (wrapper) => wrapper.find('input[type="text"]')
 const submit = (wrapper) => wrapper.find('button[type="submit"]')
-const chips = (wrapper) => wrapper.findAll('button').filter((b) => b.classes().includes('rounded-full') && b.attributes('type') !== 'submit' && b.text())
+const chips = (wrapper) => wrapper.findAll('[data-testid="chip"]')
+const modelBody = (wrapper) => wrapper.find('[data-testid="message-model"] [data-testid="message-body"]')
+const userBody = (wrapper) => wrapper.find('[data-testid="message-user"] [data-testid="message-body"]')
 
 beforeEach(() => {
   document.body.innerHTML = ''
@@ -32,10 +44,10 @@ describe('empty state', () => {
 
     expect(wrapper.text()).toContain('Ask me "What should I wear to a dinner?"')
     expect(chips(wrapper).map((c) => c.text())).toEqual([
-      '📅 Outfit for today',
-      '💼 Work / Office Look',
-      '🎉 Party / Night Out',
-      '✨ Casual Weekend',
+      'Outfit for today',
+      'Work / Office Look',
+      'Party / Night Out',
+      'Casual Weekend',
     ])
   })
 
@@ -70,9 +82,9 @@ describe('messages', () => {
     store.messages = [{ role: 'model', content: '**Bold** and *soft*\nnext' }]
     await wrapper.vm.$nextTick()
 
-    const html = wrapper.find('[class*="rounded-bl-none"] div').html()
-    expect(html).toContain('<strong class="font-semibold text-indigo-900">Bold</strong>')
-    expect(html).toContain('<em class="text-slate-600">soft</em>')
+    const html = modelBody(wrapper).html()
+    expect(html).toContain('<strong class="font-semibold">Bold</strong>')
+    expect(html).toContain('<em class="italic">soft</em>')
     expect(html).toContain('<br>')
   })
 
@@ -85,7 +97,7 @@ describe('messages', () => {
     store.messages = [{ role: 'model', content }]
     await wrapper.vm.$nextTick()
 
-    const bubble = wrapper.find('[class*="rounded-bl-none"] div')
+    const bubble = modelBody(wrapper)
     expect(bubble.find(tag).exists()).toBe(false)
     expect(bubble.text()).toBe(content)
   })
@@ -95,7 +107,7 @@ describe('messages', () => {
     store.messages = [{ role: 'user', content: '<b>hi</b> & "bye" \'now\'' }]
     await wrapper.vm.$nextTick()
 
-    const bubble = wrapper.find('[class*="rounded-br-none"] div')
+    const bubble = userBody(wrapper)
     expect(bubble.find('b').exists()).toBe(false)
     expect(bubble.text()).toBe('<b>hi</b> & "bye" \'now\'')
   })
@@ -105,7 +117,7 @@ describe('messages', () => {
     store.messages = [{ role: 'model', content: '**<i>bold</i>**\nnext' }]
     await wrapper.vm.$nextTick()
 
-    const bubble = wrapper.find('[class*="rounded-bl-none"] div')
+    const bubble = modelBody(wrapper)
     expect(bubble.find('strong').text()).toBe('<i>bold</i>')
     expect(bubble.find('i').exists()).toBe(false)
     expect(bubble.find('br').exists()).toBe(true)
@@ -116,7 +128,7 @@ describe('messages', () => {
     store.messages = [{ role: 'model' }]
     await wrapper.vm.$nextTick()
 
-    expect(wrapper.find('[class*="rounded-bl-none"] div').text()).toBe('')
+    expect(modelBody(wrapper).text()).toBe('')
   })
 
   it('renders a shopping card per source with a counter', async () => {
@@ -181,7 +193,7 @@ describe('suggestion chips', () => {
     await chips(wrapper)[1].trigger('click')
     await flushPromises()
 
-    expect(sendMessage).toHaveBeenCalledWith('💼 Work / Office Look')
+    expect(sendMessage).toHaveBeenCalledWith('Work / Office Look')
     expect(input(wrapper).element.value).toBe('draft')
   })
 
@@ -190,7 +202,7 @@ describe('suggestion chips', () => {
     store.weather = { temp: 18.6, code: 61, description: 'Rainy' }
     await wrapper.vm.$nextTick()
 
-    expect(chips(wrapper)[0].text()).toBe('☁️ Outfit for today (Rainy, 19°C)')
+    expect(chips(wrapper)[0].text()).toBe('Outfit for today (Rainy, 19°C)')
   })
 
   it('use a generic condition when the weather has no description', async () => {
@@ -198,7 +210,7 @@ describe('suggestion chips', () => {
     store.weather = { temp: 10, code: 0 }
     await wrapper.vm.$nextTick()
 
-    expect(chips(wrapper)[0].text()).toBe('☁️ Outfit for today (Current Weather, 10°C)')
+    expect(chips(wrapper)[0].text()).toBe('Outfit for today (Current Weather, 10°C)')
   })
 })
 
@@ -208,20 +220,20 @@ describe('weather widget', () => {
   })
 
   it.each([
-    [0, '☀️'],
-    [2, '☁️'],
-    [45, '🌫️'],
-    [61, '🌧️'],
-    [73, '❄️'],
-    [81, '🌦️'],
-    [96, '⚡'],
-    [4, '🌡️'],
-  ])('shows the emoji for code %i', async (code, emoji) => {
+    [0, PhSun],
+    [2, PhCloud],
+    [45, PhCloudFog],
+    [61, PhCloudRain],
+    [73, PhSnowflake],
+    [81, PhUmbrella],
+    [96, PhLightning],
+    [4, PhThermometer],
+  ])('shows the icon for code %i', async (code, icon) => {
     const wrapper = setup()
     store.weather = { temp: 20.4, code, description: 'Whatever' }
     await wrapper.vm.$nextTick()
 
-    expect(wrapper.text()).toContain(emoji)
+    expect(wrapper.find('[data-testid="weather"]').findComponent(icon).exists()).toBe(true)
     expect(wrapper.text()).toContain('20°C')
     expect(wrapper.text()).toContain('Whatever')
   })
@@ -260,12 +272,13 @@ describe('sending', () => {
     expect(wrapper.text()).toContain('Thinking...')
     expect(input(wrapper).attributes('disabled')).toBeDefined()
     expect(input(wrapper).attributes('placeholder')).toBe('Stylist is thinking...')
-    expect(wrapper.find('.animate-bounce').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="thinking"]').exists()).toBe(true)
 
     finish()
     await flushPromises()
 
     expect(wrapper.text()).not.toContain('Thinking...')
+    expect(wrapper.find('[data-testid="thinking"]').exists()).toBe(false)
     expect(input(wrapper).attributes('disabled')).toBeUndefined()
   })
 
@@ -291,6 +304,29 @@ describe('sending', () => {
     await flushPromises()
 
     expect(container.scrollTop).toBe(900)
+  })
+})
+
+describe('when the panel disappears mid-update', () => {
+  it('does not fail if it is removed right after sending', async () => {
+    const wrapper = setup()
+    await input(wrapper).setValue('hi')
+
+    wrapper.find('form').trigger('submit')
+    wrapper.unmount()
+
+    await flushPromises()
+    expect(sendMessage).toHaveBeenCalledWith('hi')
+  })
+
+  it('does not fail if it is removed while auto-scrolling a new message', async () => {
+    const wrapper = setup()
+
+    store.messages = [{ role: 'user', content: 'a' }]
+    await Promise.resolve()
+    wrapper.unmount()
+
+    await flushPromises()
   })
 })
 

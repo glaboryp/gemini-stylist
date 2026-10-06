@@ -39,7 +39,7 @@ describe('VideoModal', () => {
   it('closes when the backdrop is clicked', async () => {
     const wrapper = mountModal()
 
-    await wrapper.find('.fixed').trigger('click')
+    await wrapper.find('[role="dialog"]').trigger('click')
 
     expect(wrapper.emitted('close')).toHaveLength(1)
   })
@@ -50,6 +50,43 @@ describe('VideoModal', () => {
     await wrapper.find('video').trigger('click')
 
     expect(wrapper.emitted('close')).toBeUndefined()
+  })
+
+  it('closes with the Escape key', async () => {
+    const wrapper = mountModal()
+
+    await wrapper.find('[role="dialog"]').trigger('keydown', { key: 'Escape' })
+
+    expect(pause).toHaveBeenCalledOnce()
+    expect(wrapper.emitted('close')).toHaveLength(1)
+  })
+
+  it('is announced as a modal dialog', () => {
+    const dialog = mountModal().find('[role="dialog"]')
+
+    expect(dialog.attributes('aria-modal')).toBe('true')
+    expect(dialog.attributes('aria-label')).toBe('Garment video')
+  })
+
+  it('moves focus to the close button when it opens', async () => {
+    const wrapper = mountModal({ isOpen: false })
+
+    await wrapper.setProps({ isOpen: true })
+    await wrapper.vm.$nextTick()
+
+    expect(document.activeElement).toBe(wrapper.find('button').element)
+  })
+
+  it('does not steal focus when it closes', async () => {
+    const wrapper = mountModal()
+    const outside = document.createElement('input')
+    document.body.appendChild(outside)
+    outside.focus()
+
+    await wrapper.setProps({ isOpen: false })
+    await wrapper.vm.$nextTick()
+
+    expect(document.activeElement).toBe(outside)
   })
 
   it('seekAndPlay jumps to the time and plays', async () => {
