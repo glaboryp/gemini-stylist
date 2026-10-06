@@ -12,13 +12,16 @@ from google.genai import types
 load_dotenv()
 
 FALLBACK_MODELS = [
-    "gemini-2.5-flash-lite",
-    "gemini-2.5-flash",
-    "gemma-3-27b-it",
-    "gemma-3-12b-it"
+    "gemini-3.1-flash-lite",
+    "gemini-3.5-flash-lite",
+    "gemini-3-flash-preview",
+    "gemini-3.5-flash",
 ]
 
-VIDEO_MODEL_ID = "gemini-3-flash-preview"
+VIDEO_MODELS = [
+    "gemini-3-flash-preview",
+    "gemini-3.5-flash",
+]
 
 def get_api_keys():
     keys = [k.strip() for k in os.environ.get("GOOGLE_API_KEYS", "").split() if k.strip()]
@@ -147,7 +150,7 @@ def generate_style_persona(inventory: list, lat: float = None, lon: float = None
     return None
 
 def analyze_video_service(video_path: str, lat: float = None, lon: float = None):
-    """Sube y analiza el video. (Sin fallback complejo por ser subida de archivo)."""
+    """Sube y analiza el video, probando el siguiente modelo si uno falla."""
     print(f"Uploading file: {video_path}")
     
     client = get_random_client()
@@ -168,22 +171,33 @@ def analyze_video_service(video_path: str, lat: float = None, lon: float = None)
 
     print("Video active. Generating inventory...")
 
-    response = client.models.generate_content(
-        model=VIDEO_MODEL_ID,
-        contents=[
-            types.Content(
-                role="user",
-                parts=[
-                    types.Part.from_uri(
-                        file_uri=video_file.uri,
-                        mime_type=video_file.mime_type
-                    ),
-                    types.Part.from_text(text=SYSTEM_PROMPT)
-                ]
+    contents = [
+        types.Content(
+            role="user",
+            parts=[
+                types.Part.from_uri(
+                    file_uri=video_file.uri,
+                    mime_type=video_file.mime_type
+                ),
+                types.Part.from_text(text=SYSTEM_PROMPT)
+            ]
+        )
+    ]
+
+    last_error = None
+    for model_name in VIDEO_MODELS:
+        try:
+            response = client.models.generate_content(
+                model=model_name,
+                contents=contents,
+                config=types.GenerateContentConfig(response_mime_type="application/json")
             )
-        ],
-        config=types.GenerateContentConfig(response_mime_type="application/json")
-    )
+            break
+        except Exception as e:
+            print(f"Video model {model_name} failed: {e}")
+            last_error = e
+    else:
+        raise last_error
 
     initial_result = json.loads(response.text)
     

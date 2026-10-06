@@ -380,8 +380,8 @@ class TestAnalyzeVideoService:
     def setup(self, mocker):
         mocker.patch("services.time.sleep")
 
-        def install(uploaded, *polled, generated='{"inventory": [{"id": "1"}]}'):
-            client = make_client(SimpleNamespace(text=generated))
+        def install(uploaded, *polled, generated='{"inventory": [{"id": "1"}]}', outcomes=None):
+            client = make_client(*(outcomes or [SimpleNamespace(text=generated)]))
             client.files = SimpleNamespace(
                 upload=mocker.Mock(return_value=uploaded),
                 get=mocker.Mock(side_effect=list(polled)),
@@ -399,9 +399,44 @@ class TestAnalyzeVideoService:
 
         client.files.upload.assert_called_once_with(file="clip.mp4")
         client.files.get.assert_not_called()
-        assert client.calls[0]["model"] == services.VIDEO_MODEL_ID
+        assert client.calls[0]["model"] == services.VIDEO_MODELS[0]
         persona.assert_called_once_with([{"id": "1"}], None, None)
         assert result == {"inventory": [{"id": "1"}]}
+
+    def test_falls_back_to_the_next_model_when_one_is_overloaded(self, setup, mocker):
+        mocker.patch("services.generate_style_persona", return_value=None)
+        client = setup(
+            self.video("ACTIVE"),
+            outcomes=[RuntimeError("503 UNAVAILABLE"), SimpleNamespace(text='{"inventory": []}')],
+        )
+
+        result = services.analyze_video_service("clip.mp4")
+
+        assert [c["model"] for c in client.calls] == services.VIDEO_MODELS[:2]
+        assert client.calls[0]["contents"] == client.calls[1]["contents"]
+        assert result == {"inventory": []}
+
+    def test_uses_the_same_client_for_every_model(self, setup, mocker):
+        mocker.patch("services.generate_style_persona", return_value=None)
+        setup(
+            self.video("ACTIVE"),
+            outcomes=[RuntimeError("503"), SimpleNamespace(text='{"inventory": []}')],
+        )
+
+        services.analyze_video_service("clip.mp4")
+
+        services.get_random_client.assert_called_once()
+
+    def test_raises_the_last_error_when_every_model_fails(self, setup):
+        client = setup(
+            self.video("ACTIVE"),
+            outcomes=[RuntimeError("first")] * (len(services.VIDEO_MODELS) - 1) + [RuntimeError("last")],
+        )
+
+        with pytest.raises(RuntimeError, match="last"):
+            services.analyze_video_service("clip.mp4")
+
+        assert [c["model"] for c in client.calls] == services.VIDEO_MODELS
 
     def test_waits_while_video_is_processing(self, setup, mocker):
         mocker.patch("services.generate_style_persona", return_value=None)
