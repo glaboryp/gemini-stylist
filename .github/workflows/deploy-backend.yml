@@ -1,0 +1,57 @@
+name: Deploy backend
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - backend/**
+      - .github/workflows/deploy-backend.yml
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-backend
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  PROJECT_ID: gen-lang-client-0238866347
+  REGION: europe-southwest1
+  SERVICE: gemini-stylist
+  IMAGE: europe-southwest1-docker.pkg.dev/gen-lang-client-0238866347/cloud-run-source-deploy/gemini-stylist
+
+jobs:
+  deploy-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.10"
+          cache: pip
+          cache-dependency-path: |
+            backend/requirements.txt
+            backend/requirements-dev.txt
+      - run: pip install -r requirements-dev.txt
+        working-directory: backend
+      - run: ruff check .
+        working-directory: backend
+      - run: pytest
+        working-directory: backend
+      - uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
+      - uses: google-github-actions/setup-gcloud@v3
+      - run: gcloud auth configure-docker europe-southwest1-docker.pkg.dev --quiet
+      - run: |
+          docker build -t "$IMAGE:$GITHUB_SHA" backend
+          docker push "$IMAGE:$GITHUB_SHA"
+      - uses: google-github-actions/deploy-cloudrun@v3
+        with:
+          service: ${{ env.SERVICE }}
+          region: ${{ env.REGION }}
+          project_id: ${{ env.PROJECT_ID }}
+          image: ${{ env.IMAGE }}:${{ github.sha }}

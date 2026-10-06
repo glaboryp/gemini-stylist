@@ -106,11 +106,15 @@ Gemini Stylist is an AI-powered personal stylist application that scans your war
 
 ## Deployment
 
-The frontend is deployed to Firebase Hosting (site `gemini-stylist-demo`) by the **Deploy** workflow on every push to `main`. It runs the tests, builds the app and publishes it. It can also be run by hand from the Actions tab.
+Both parts deploy automatically when changes reach `main`:
+
+- **Frontend** (Firebase Hosting, site `gemini-stylist-demo`): the **Deploy** workflow runs the tests, builds the app and publishes it.
+- **Backend** (Cloud Run, service `gemini-stylist` in `europe-southwest1`): the **Deploy backend** workflow runs when something under `backend/` changes. It lints, runs the tests, builds the image, pushes it to Artifact Registry and rolls out a new revision. Environment variables of the service (such as `GOOGLE_API_KEYS`) are kept.
+
+Both can also be run by hand from the Actions tab.
 
 Required repository settings (Settings > Secrets and variables > Actions):
 
-- Secret `FIREBASE_SERVICE_ACCOUNT`: JSON key of a Google Cloud service account with the roles **Firebase Hosting Admin** and **API Keys Viewer**.
-- Variable `VITE_API_URL`: public URL of the production backend, without a trailing slash. Without it the build would point at `http://localhost:8000`, so the workflow fails when it is missing.
-
-The backend is not deployed by this workflow.
+- Secret `FIREBASE_SERVICE_ACCOUNT`: JSON key of a service account with the roles **Firebase Hosting Admin** and **API Keys Viewer**.
+- Variable `VITE_API_URL`: public URL of the production backend, without a trailing slash. Without it the build would point at `http://localhost:8000`, so the frontend workflow fails when it is missing.
+- Variables `GCP_WORKLOAD_IDENTITY_PROVIDER` and `GCP_SERVICE_ACCOUNT`: the backend workflow authenticates with Workload Identity Federation, so it needs no key file. Only this repository on the `main` branch can use it. The service account needs `roles/run.admin` and `roles/artifactregistry.writer` on the project, plus `roles/iam.serviceAccountUser` on the Cloud Run runtime service account.
