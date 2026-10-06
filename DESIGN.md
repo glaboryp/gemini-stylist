@@ -214,7 +214,7 @@ Square. Radius is 0 on every control, card, input, message and modal. The only n
 - Edge-to-edge bands of garment colors (or six sample colors when empty) that unfurl with a clip-path reveal staggered by 90ms. Desktop bands carry a mono caption on a paper chip.
 
 ### Wordmark
-- Text only: "Gemini Stylist" in Title display type at 1.25rem. A temporary slot until the generated logo lands; it is expected to be replaced, not extended.
+- A 32px notched vermilion square with a "G" cut out of it (true cutout, so the page shows through), followed by "Gemini Stylist" in Title display type at 1.25rem. The mark is an inline SVG filled with the accent token, so it follows light and dark. Standalone files live in `frontend/public`: `icono.svg`, `logo_letras.svg` (text outlined from Bricolage Grotesque, adapts to `prefers-color-scheme`), `favicon-32.png` and `apple-touch-icon.png`.
 
 ### Motion
 - Easing `cubic-bezier(0.16, 1, 0.3, 1)`. `rise` (0.7s, 14px upward fade, 70ms stagger) for the hero copy, `unfurl` (0.8s clip reveal) for swatches, `scan` (2.8s linear, infinite) for the line over the loading video, a 300ms transform on the chat sheet and progress bar. `prefers-reduced-motion` collapses all durations to 0.01ms.
@@ -245,4 +245,3 @@ Defects and drift the build carries, which are not rules for future surfaces:
 - The "Your colors" / "Sample colors" tag on the swatch rack is a small caption label with its own ink chip; do not reuse it as a kicker or eyebrow.
 - Hover and highlight use `ring-2`; the highlight border plus ring is a doubled 2px+2px that goes beyond the 2px direction.
 - `alert()` for missing video playback, and the dropzone `border-ink` at rest versus `border-line` elsewhere is an exception specific to the primary action.
-- Wordmark is a temporary text placeholder.

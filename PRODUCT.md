@@ -37,7 +37,7 @@ Un solo vídeo corto sustituye a fotografiar y catalogar prenda a prenda. Gemini
 ## Brand Commitments
 
 - Nombre: Gemini Stylist.
-- El logo actual se sustituye; el nuevo se genera con una IA de imágenes a partir de un prompt que entrega el equipo de diseño.
+- Logo: una muestra bermellón con la esquina superior izquierda cortada y una "G" recortada, junto al nombre en Bricolage Grotesque. Archivos en `frontend/public` (`icono.svg`, `logo_letras.svg`).
 - El botón "For Judges" (carga de datos de demostración) se elimina de la interfaz.
 
 ## Evidence on Hand

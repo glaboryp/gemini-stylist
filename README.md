@@ -1,4 +1,4 @@
-# <img src="frontend/public/logo_bgremove.png" alt="Gemini Stylist Logo" height="60" align="middle" /> Gemini Stylist
+# <img src="frontend/public/icono.svg" alt="Gemini Stylist Logo" height="48" align="middle" /> Gemini Stylist
 
 Gemini Stylist is an AI-powered personal stylist application that scans your wardrobe from a video and acts as your fashion companion. It utilizes **Gemini 3** multimodal capabilities to build a digital inventory and offers hyper-personalized outfit advice grounded in real-world trends and weather data.
 
