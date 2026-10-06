@@ -102,4 +102,15 @@ Gemini Stylist is an AI-powered personal stylist application that scans your war
 
 1.  Ensure both backend and frontend servers are running.
 2.  Open your browser and go to `http://localhost:5173`.
-3.  Upload a video of your clothes or try the **Demo Mode** to see it in action.
+3.  Upload a short video of your clothes and ask the stylist for outfit advice.
+
+## Deployment
+
+The frontend is deployed to Firebase Hosting (site `gemini-stylist-demo`) by the **Deploy** workflow on every push to `main`. It runs the tests, builds the app and publishes it. It can also be run by hand from the Actions tab.
+
+Required repository settings (Settings > Secrets and variables > Actions):
+
+- Secret `FIREBASE_SERVICE_ACCOUNT`: JSON key of a Google Cloud service account with the roles **Firebase Hosting Admin** and **API Keys Viewer**.
+- Variable `VITE_API_URL`: public URL of the production backend, without a trailing slash. Without it the build would point at `http://localhost:8000`, so the workflow fails when it is missing.
+
+The backend is not deployed by this workflow.
