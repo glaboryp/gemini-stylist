@@ -18,7 +18,7 @@ FALLBACK_MODELS = [
     "gemma-3-12b-it"
 ]
 
-VIDEO_MODEL_ID = "gemini-3-flash"
+VIDEO_MODEL_ID = "gemini-3-flash-preview"
 
 def get_api_keys():
     keys = [k.strip() for k in os.environ.get("GOOGLE_API_KEYS", "").split() if k.strip()]
