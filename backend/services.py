@@ -31,6 +31,50 @@ def get_api_keys():
             keys = [single_key]
     return keys
 
+HEALTH_CACHE_SECONDS = 600
+_health_cache = {"at": None, "result": None}
+
+def probe_model(api_key, model_name):
+    client = genai.Client(api_key=api_key)
+    try:
+        client.models.generate_content(
+            model=model_name,
+            contents="Reply with the word ok",
+            config=types.GenerateContentConfig(max_output_tokens=16),
+        )
+        return "ok"
+    except Exception as error:
+        code = getattr(error, "code", None)
+        if code == 404:
+            return "not_found"
+        if code in (400, 401, 403):
+            return "invalid"
+        return "error"
+
+def check_health():
+    now = time.monotonic()
+    if _health_cache["result"] is not None and now - _health_cache["at"] < HEALTH_CACHE_SECONDS:
+        return _health_cache["result"]
+
+    keys = get_api_keys()
+    names = list(dict.fromkeys(FALLBACK_MODELS + VIDEO_MODELS))
+    key_status = [probe_model(key, names[0]) for key in keys]
+    working_key = next((key for key, status in zip(keys, key_status, strict=True) if status == "ok"), None)
+
+    result = {
+        "keys": {
+            "total": len(keys),
+            "valid": key_status.count("ok"),
+            "invalid": key_status.count("invalid"),
+        },
+        "models": {
+            name: probe_model(working_key, name) if working_key else "unchecked"
+            for name in names
+        },
+    }
+    _health_cache.update(at=now, result=result)
+    return result
+
 def get_random_client():
     keys = get_api_keys()
     if not keys:

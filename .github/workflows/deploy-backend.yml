@@ -50,8 +50,11 @@ jobs:
           docker build -t "$IMAGE:$GITHUB_SHA" backend
           docker push "$IMAGE:$GITHUB_SHA"
       - uses: google-github-actions/deploy-cloudrun@v3
+        id: deploy
         with:
           service: ${{ env.SERVICE }}
           region: ${{ env.REGION }}
           project_id: ${{ env.PROJECT_ID }}
           image: ${{ env.IMAGE }}:${{ github.sha }}
+      - name: Smoke test
+        run: bash "$GITHUB_WORKSPACE/.github/scripts/smoke-backend.sh" "${{ steps.deploy.outputs.url }}"

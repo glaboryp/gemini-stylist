@@ -49,3 +49,7 @@ jobs:
           target: app-demo
           entryPoint: frontend
           channelId: live
+      - name: Smoke test
+        env:
+          VITE_API_URL: ${{ vars.VITE_API_URL }}
+        run: bash "$GITHUB_WORKSPACE/.github/scripts/smoke-frontend.sh" https://gemini-stylist-demo.web.app "$VITE_API_URL"
