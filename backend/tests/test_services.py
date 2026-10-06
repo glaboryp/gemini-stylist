@@ -6,6 +6,14 @@ import pytest
 import services
 
 
+class QuotaError(Exception):
+    code = 429
+
+
+def quota_errors(count=None):
+    return [QuotaError("RESOURCE_EXHAUSTED") for _ in range(count or len(services.FALLBACK_MODELS))]
+
+
 def make_response(text, sources=None, has_metadata=True):
     chunks = [
         SimpleNamespace(web=SimpleNamespace(title=title, uri=uri))
@@ -205,6 +213,36 @@ class TestGenerateStylePersona:
         assert result == {"text": "ok"}
         assert [c["model"] for c in client.calls] == services.FALLBACK_MODELS[:2]
 
+    def test_retries_without_search_when_the_quota_is_exhausted(self, fake_client):
+        client = fake_client(*quota_errors(), make_response('{"text": "Classic"}'))
+
+        result = services.generate_style_persona(self.inventory)
+
+        total = len(services.FALLBACK_MODELS)
+        assert [c["model"] for c in client.calls] == services.FALLBACK_MODELS + services.FALLBACK_MODELS[:1]
+        assert all(c["config"].tools for c in client.calls[:total])
+        assert client.calls[total]["config"].tools is None
+        assert result["text"] == "Classic" + services.SEARCH_UNAVAILABLE_NOTE
+
+    def test_does_not_retry_without_search_after_a_success_with_search(self, fake_client):
+        client = fake_client(*quota_errors(1), make_response('{"text": "ok"}'))
+
+        result = services.generate_style_persona(self.inventory)
+
+        assert result == {"text": "ok"}
+        assert len(client.calls) == 2
+
+    def test_returns_none_when_search_and_no_search_both_hit_the_quota(self, fake_client):
+        client = fake_client(*quota_errors(2 * len(services.FALLBACK_MODELS)))
+
+        assert services.generate_style_persona(self.inventory) is None
+        assert len(client.calls) == 2 * len(services.FALLBACK_MODELS)
+
+    def test_a_persona_without_text_keeps_no_note_after_the_retry(self, fake_client):
+        fake_client(*quota_errors(), make_response('{"related_item_ids": []}'))
+
+        assert "text" not in services.generate_style_persona(self.inventory)
+
     def test_returns_none_when_every_model_fails(self, fake_client):
         client = fake_client(*[RuntimeError("down")] * len(services.FALLBACK_MODELS))
 
@@ -351,6 +389,36 @@ class TestChatWithStylist:
 
         assert self.chat()["text"] == "ok"
         assert [c["model"] for c in client.calls] == services.FALLBACK_MODELS[:2]
+
+    def test_retries_without_search_when_the_quota_is_exhausted(self, fake_client):
+        client = fake_client(
+            *quota_errors(),
+            make_response('{"text": "Wear this", "related_item_ids": ["a"]}', sources=[("Vogue", "https://vogue.example")]),
+        )
+
+        result = self.chat()
+
+        total = len(services.FALLBACK_MODELS)
+        assert all(c["config"].tools for c in client.calls[:total])
+        assert client.calls[total]["config"].tools is None
+        assert result["text"] == "Wear this" + services.SEARCH_UNAVAILABLE_NOTE
+        assert result["related_item_ids"] == ["a"]
+
+    def test_does_not_retry_without_search_after_a_success_with_search(self, fake_client):
+        client = fake_client(*quota_errors(1), make_response('{"text": "ok"}'))
+
+        result = self.chat()
+
+        assert result["text"] == "ok"
+        assert len(client.calls) == 2
+
+    def test_friendly_message_when_search_and_no_search_both_hit_the_quota(self, fake_client):
+        client = fake_client(*quota_errors(2 * len(services.FALLBACK_MODELS)))
+
+        result = self.chat()
+
+        assert "High Traffic" in result["text"]
+        assert len(client.calls) == 2 * len(services.FALLBACK_MODELS)
 
     def test_all_models_failing_returns_friendly_message(self, fake_client):
         fake_client(*[RuntimeError("down")] * len(services.FALLBACK_MODELS))

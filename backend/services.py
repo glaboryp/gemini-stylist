@@ -100,6 +100,19 @@ def get_current_weather(lat: float, lon: float):
     return None
 
 
+SEARCH_UNAVAILABLE_NOTE = (
+    "\n\n*Google Search is unavailable right now (quota reached), "
+    "so this answer is not checked against current trends.*"
+)
+
+def is_quota_error(error):
+    return getattr(error, "code", None) == 429
+
+def search_tools(use_search):
+    if not use_search:
+        return None
+    return [types.Tool(google_search=types.GoogleSearch())]
+
 def generate_style_persona(inventory: list, lat: float = None, lon: float = None):
     weather_context = ""
     if lat and lon:
@@ -127,25 +140,32 @@ def generate_style_persona(inventory: list, lat: float = None, lon: float = None
     """
 
     last_error = None
-    
-    for model_name in FALLBACK_MODELS:
-        try:
-            client = get_random_client()
-            google_search_tool = types.Tool(google_search=types.GoogleSearch())
-            response = client.models.generate_content(
-                model=model_name,
-                contents=prompt,
-                config=types.GenerateContentConfig(
-                    tools=[google_search_tool],
-                    response_mime_type="application/json"
-                )
-            )
-            return clean_and_parse_json(response.text)
 
-        except Exception as e:
-            last_error = e
-            continue
-            
+    for use_search in (True, False):
+        quota_hit = False
+        for model_name in FALLBACK_MODELS:
+            try:
+                client = get_random_client()
+                response = client.models.generate_content(
+                    model=model_name,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(
+                        tools=search_tools(use_search),
+                        response_mime_type="application/json"
+                    )
+                )
+                persona = clean_and_parse_json(response.text)
+                if not use_search and persona.get("text"):
+                    persona["text"] += SEARCH_UNAVAILABLE_NOTE
+                return persona
+
+            except Exception as e:
+                last_error = e
+                quota_hit = quota_hit or is_quota_error(e)
+
+        if not quota_hit:
+            break
+
     print(f"❌ All Persona models failed. Last error: {last_error}")
     return None
 
@@ -238,43 +258,49 @@ def chat_with_stylist_service(user_message: str, chat_history: list, inventory_c
 
     last_error = None
 
-    for model_name in FALLBACK_MODELS:
-        try:
-            client = get_random_client()
-            google_search_tool = types.Tool(google_search=types.GoogleSearch())
-            
-            response = client.models.generate_content(
-                model=model_name,
-                contents=contents,
-                config=types.GenerateContentConfig(
-                    tools=[google_search_tool],
-                    system_instruction=system_instruction
+    for use_search in (True, False):
+        quota_hit = False
+        for model_name in FALLBACK_MODELS:
+            try:
+                client = get_random_client()
+
+                response = client.models.generate_content(
+                    model=model_name,
+                    contents=contents,
+                    config=types.GenerateContentConfig(
+                        tools=search_tools(use_search),
+                        system_instruction=system_instruction
+                    )
                 )
-            )
 
-            sources = []
-            if response.candidates and response.candidates[0].grounding_metadata:
-                metadata = response.candidates[0].grounding_metadata
-                if metadata.grounding_chunks:
-                    for chunk in metadata.grounding_chunks:
-                        if chunk.web:
-                            sources.append({"title": chunk.web.title, "uri": chunk.web.uri})
+                sources = []
+                if response.candidates and response.candidates[0].grounding_metadata:
+                    metadata = response.candidates[0].grounding_metadata
+                    if metadata.grounding_chunks:
+                        for chunk in metadata.grounding_chunks:
+                            if chunk.web:
+                                sources.append({"title": chunk.web.title, "uri": chunk.web.uri})
 
-            parsed_response = clean_and_parse_json(response.text)
-            
-            text_response = parsed_response.get("text")
-            if not text_response:
-                text_response = response.text if response.text else "Here is what I found."
+                parsed_response = clean_and_parse_json(response.text)
 
-            return {
-                "text": text_response,
-                "related_item_ids": parsed_response.get("related_item_ids", []),
-                "sources": sources
-            }
+                text_response = parsed_response.get("text")
+                if not text_response:
+                    text_response = response.text if response.text else "Here is what I found."
+                if not use_search:
+                    text_response += SEARCH_UNAVAILABLE_NOTE
 
-        except Exception as e:
-            last_error = e
-            continue
+                return {
+                    "text": text_response,
+                    "related_item_ids": parsed_response.get("related_item_ids", []),
+                    "sources": sources
+                }
+
+            except Exception as e:
+                last_error = e
+                quota_hit = quota_hit or is_quota_error(e)
+
+        if not quota_hit:
+            break
 
     print(f"❌ All Chat models failed. Last error: {last_error}")
     return {
