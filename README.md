@@ -39,6 +39,8 @@ Gemini Stylist is an AI-powered personal stylist application that scans your war
     python -m venv venv
     ```
 
+    On systems without a `python` command, use `python3` instead.
+
 3.  Activate the virtual environment:
 
     - **Linux/macOS**:
@@ -58,11 +60,17 @@ Gemini Stylist is an AI-powered personal stylist application that scans your war
 
 5.  Configure Environment Variables:
 
-    - Create a `.env` file in the `backend/` directory.
-    - Add your Gemini API key:
+    - Copy the example file and fill in your values:
+      ```bash
+      cp .env.example .env
       ```
-      GEMINI_API_KEY=your_api_key_here
+    - Set your Gemini API key in `.env`:
       ```
+      GOOGLE_API_KEY=your_api_key_here
+      ```
+    - To rotate between several keys, use `GOOGLE_API_KEYS` instead, with the keys separated by spaces. Each request picks one at random. When it is set, `GOOGLE_API_KEY` is ignored.
+    - Optionally, add extra allowed origins with `CORS_ORIGINS` (comma-separated).
+    - Restart the backend after changing `.env`.
 
 6.  Run the development server:
     ```bash
