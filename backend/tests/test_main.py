@@ -21,6 +21,17 @@ def test_lifespan_creates_and_removes_temp_dir(app_module, tmp_path):
     assert not (tmp_path / "temp_uploads").exists()
 
 
+def test_health_models_returns_the_service_result(client, mocker):
+    report = {"keys": {"total": 1, "valid": 1, "invalid": 0}, "models": {"m": "ok"}}
+    check = mocker.patch("main.check_health", return_value=report)
+
+    response = client.get("/health/models")
+
+    assert response.status_code == 200
+    assert response.json() == report
+    check.assert_called_once_with()
+
+
 class TestAnalyzeVideo:
     def test_returns_service_result_and_forwards_location(self, client, mocker):
         service = mocker.patch(

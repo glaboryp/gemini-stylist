@@ -111,6 +111,119 @@ class TestApiKeys:
         assert services.get_api_keys() == ["rotated"]
 
 
+class FakeModelError(Exception):
+    def __init__(self, code):
+        super().__init__(f"status {code}")
+        self.code = code
+
+
+class TestCheckHealth:
+    @pytest.fixture
+    def models_api(self, mocker):
+        calls = []
+        outcomes = {}
+
+        def build(api_key):
+            def generate_content(model, contents, config):
+                calls.append((api_key, model))
+                assert config.max_output_tokens
+                assert contents
+                outcome = outcomes.get((api_key, model), outcomes.get(api_key, outcomes.get(model)))
+                if isinstance(outcome, Exception):
+                    raise outcome
+
+            return SimpleNamespace(models=SimpleNamespace(generate_content=generate_content))
+
+        mocker.patch("services.genai.Client", side_effect=lambda api_key: build(api_key))
+        build.calls = calls
+        build.outcomes = outcomes
+        return build
+
+    def all_models(self):
+        return list(dict.fromkeys(services.FALLBACK_MODELS + services.VIDEO_MODELS))
+
+    def test_everything_valid(self, models_api):
+        result = services.check_health()
+
+        assert result["keys"] == {"total": 1, "valid": 1, "invalid": 0}
+        assert result["models"] == {name: "ok" for name in self.all_models()}
+
+    def test_each_model_is_listed_once(self, models_api):
+        assert len(services.check_health()["models"]) == len(self.all_models())
+
+    def test_reports_a_retired_model(self, models_api):
+        models_api.outcomes["gemini-3.5-flash"] = FakeModelError(404)
+
+        models = services.check_health()["models"]
+
+        assert models["gemini-3.5-flash"] == "not_found"
+        assert models["gemini-3-flash-preview"] == "ok"
+
+    def test_an_unexpected_failure_is_reported_as_error(self, models_api):
+        models_api.outcomes["gemini-3.5-flash"] = FakeModelError(503)
+
+        assert services.check_health()["models"]["gemini-3.5-flash"] == "error"
+
+    def test_counts_invalid_keys_and_uses_a_valid_one_for_the_models(self, models_api, monkeypatch):
+        monkeypatch.setenv("GOOGLE_API_KEYS", "bad good")
+        models_api.outcomes["bad"] = FakeModelError(400)
+
+        result = services.check_health()
+
+        assert result["keys"] == {"total": 2, "valid": 1, "invalid": 1}
+        assert result["models"] == {name: "ok" for name in self.all_models()}
+        assert {key for key, _ in models_api.calls if key == "bad"} == {"bad"}
+        assert [key for key, model in models_api.calls if model != services.FALLBACK_MODELS[0]] == ["good"] * (len(self.all_models()) - 1)
+
+    @pytest.mark.parametrize("code", [401, 403])
+    def test_rejected_keys_count_as_invalid(self, models_api, code):
+        models_api.outcomes["test-key"] = FakeModelError(code)
+
+        assert services.check_health()["keys"]["invalid"] == 1
+
+    def test_a_temporary_key_failure_is_neither_valid_nor_invalid(self, models_api):
+        models_api.outcomes["test-key"] = FakeModelError(429)
+
+        keys = services.check_health()["keys"]
+
+        assert keys == {"total": 1, "valid": 0, "invalid": 0}
+
+    def test_models_are_unchecked_without_a_working_key(self, models_api):
+        models_api.outcomes["test-key"] = FakeModelError(400)
+
+        models = services.check_health()["models"]
+
+        assert set(models.values()) == {"unchecked"}
+
+    def test_no_keys_at_all(self, models_api, monkeypatch):
+        monkeypatch.delenv("GOOGLE_API_KEY")
+
+        result = services.check_health()
+
+        assert result["keys"] == {"total": 0, "valid": 0, "invalid": 0}
+        assert set(result["models"].values()) == {"unchecked"}
+
+    def test_the_result_is_cached(self, models_api):
+        first = services.check_health()
+        calls_after_first = len(models_api.calls)
+
+        assert services.check_health() is first
+        assert len(models_api.calls) == calls_after_first
+
+    def test_the_cache_expires(self, models_api, mocker):
+        clock = mocker.patch("services.time.monotonic", return_value=1000.0)
+        services.check_health()
+        calls_after_first = len(models_api.calls)
+
+        clock.return_value = 1000.0 + services.HEALTH_CACHE_SECONDS + 1
+        services.check_health()
+
+        assert len(models_api.calls) == 2 * calls_after_first
+
+    def test_the_result_never_contains_keys(self, models_api):
+        assert "test-key" not in str(services.check_health())
+
+
 class TestGetRandomClient:
     def test_raises_without_keys(self, monkeypatch):
         monkeypatch.delenv("GOOGLE_API_KEY")

@@ -9,7 +9,7 @@ from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from services import analyze_video_service, chat_with_stylist_service
+from services import analyze_video_service, chat_with_stylist_service, check_health
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +43,10 @@ app.add_middleware(
 @app.get("/")
 def read_root():
     return {"message": "Gemini Stylist Backend API"}
+
+@app.get("/health/models")
+def health_models():
+    return check_health()
 
 @app.post("/analyze-video")
 async def analyze_video(

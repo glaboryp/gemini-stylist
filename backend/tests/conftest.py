@@ -10,6 +10,12 @@ def api_key(monkeypatch):
     monkeypatch.setenv("GOOGLE_API_KEY", "test-key")
 
 
+@pytest.fixture(autouse=True)
+def fresh_health_cache():
+    import services
+    services._health_cache.update(at=None, result=None)
+
+
 @pytest.fixture
 def app_module(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
