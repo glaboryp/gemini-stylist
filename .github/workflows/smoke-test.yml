@@ -1,0 +1,23 @@
+name: Smoke test
+
+on:
+  schedule:
+    - cron: "0 7 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Backend
+        env:
+          VITE_API_URL: ${{ vars.VITE_API_URL }}
+        run: bash .github/scripts/smoke-backend.sh "$VITE_API_URL"
+      - name: Frontend
+        env:
+          VITE_API_URL: ${{ vars.VITE_API_URL }}
+        run: bash .github/scripts/smoke-frontend.sh https://gemini-stylist-demo.web.app "$VITE_API_URL"

@@ -118,3 +118,9 @@ Required repository settings (Settings > Secrets and variables > Actions):
 - Secret `FIREBASE_SERVICE_ACCOUNT`: JSON key of a service account with the roles **Firebase Hosting Admin** and **API Keys Viewer**.
 - Variable `VITE_API_URL`: public URL of the production backend, without a trailing slash. Without it the build would point at `http://localhost:8000`, so the frontend workflow fails when it is missing.
 - Variables `GCP_WORKLOAD_IDENTITY_PROVIDER` and `GCP_SERVICE_ACCOUNT`: the backend workflow authenticates with Workload Identity Federation, so it needs no key file. Only this repository on the `main` branch can use it. The service account needs `roles/run.admin` and `roles/artifactregistry.writer` on the project, plus `roles/iam.serviceAccountUser` on the Cloud Run runtime service account.
+
+### Smoke tests
+
+After each deployment a smoke test checks the live service. The backend one calls `GET /health/models`, which sends a tiny real request to every model listed in `backend/services.py` and to every API key, and fails the run when a model is retired or a key is invalid. The frontend one checks that the published bundle points to the production API. The same checks run every Monday from the **Smoke test** workflow, so a model that Google retires is noticed without waiting for a deploy.
+
+A failed smoke test does not roll back the deployment; it turns the run red so GitHub notifies you.
