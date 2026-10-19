@@ -44,5 +44,7 @@ check_models.py
 
 # Project Specific
 temp_uploads/
+.claude/
+.impeccable/review/
 
 DEPLOYMENT.md
