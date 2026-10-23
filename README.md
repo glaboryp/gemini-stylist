@@ -115,7 +115,7 @@ Both can also be run by hand from the Actions tab.
 
 Required repository settings (Settings > Secrets and variables > Actions):
 
-- Secret `FIREBASE_SERVICE_ACCOUNT`: JSON key of a service account with the roles **Firebase Hosting Admin** and **API Keys Viewer**.
+- Secret `FIREBASE_SERVICE_ACCOUNT`: JSON key of a service account with the roles **Firebase Hosting Admin**, **API Keys Viewer** and **Service Usage Consumer** (firebase-tools 15.34.1+ checks that the Hosting API is enabled before deploying).
 - Variable `VITE_API_URL`: public URL of the production backend, without a trailing slash. Without it the build would point at `http://localhost:8000`, so the frontend workflow fails when it is missing.
 - Variables `GCP_WORKLOAD_IDENTITY_PROVIDER` and `GCP_SERVICE_ACCOUNT`: the backend workflow authenticates with Workload Identity Federation, so it needs no key file. Only this repository on the `main` branch can use it. The service account needs `roles/run.admin` and `roles/artifactregistry.writer` on the project, plus `roles/iam.serviceAccountUser` on the Cloud Run runtime service account.
 
