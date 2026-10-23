@@ -21,7 +21,7 @@ Gemini Stylist is an AI-powered personal stylist application that scans your war
 
 ### Prerequisites
 
-- Python 3.10+
+- Python 3.14+
 - Node.js 18+
 - A Google Gemini API Key
 
