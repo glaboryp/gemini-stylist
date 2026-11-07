@@ -134,7 +134,7 @@ class TestCheckHealth:
 
             return SimpleNamespace(models=SimpleNamespace(generate_content=generate_content))
 
-        mocker.patch("services.genai.Client", side_effect=lambda api_key: build(api_key))
+        mocker.patch("services.genai.Client", side_effect=lambda api_key, **_: build(api_key))
         build.calls = calls
         build.outcomes = outcomes
         return build
@@ -238,7 +238,7 @@ class TestGetRandomClient:
 
         result = services.get_random_client()
 
-        client_cls.assert_called_once_with(api_key="k2")
+        client_cls.assert_called_once_with(api_key="k2", http_options=services.HTTP_OPTIONS)
         assert result is client_cls.return_value
 
 

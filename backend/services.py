@@ -31,11 +31,14 @@ def get_api_keys():
             keys = [single_key]
     return keys
 
+# Files API, Google Search grounding and JSON mode need v1beta; google-genai 3 defaults to v1
+HTTP_OPTIONS = types.HttpOptions(api_version="v1beta")
+
 HEALTH_CACHE_SECONDS = 600
 _health_cache = {"at": None, "result": None}
 
 def probe_model(api_key, model_name):
-    client = genai.Client(api_key=api_key)
+    client = genai.Client(api_key=api_key, http_options=HTTP_OPTIONS)
     try:
         client.models.generate_content(
             model=model_name,
@@ -80,7 +83,7 @@ def get_random_client():
     if not keys:
         raise ValueError("No hay API Keys disponibles.")
 
-    return genai.Client(api_key=random.choice(keys))
+    return genai.Client(api_key=random.choice(keys), http_options=HTTP_OPTIONS)
 
 SYSTEM_PROMPT = """
 You are an expert fashion stylist and inventory manager with perfect computer vision.
