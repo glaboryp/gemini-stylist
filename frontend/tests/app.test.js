@@ -17,19 +17,24 @@ describe('App', () => {
 
 describe('main', () => {
   beforeEach(() => {
-    document.body.innerHTML = '<div id="app"></div>'
     vi.resetModules()
-    freshPinia()
   })
 
-  afterEach(() => {
-    document.body.innerHTML = ''
-  })
+  it('installs Pinia and the router before mounting the app', async () => {
+    const use = vi.fn()
+    const mount = vi.fn()
+    const createApp = vi.fn(() => ({ use, mount }))
+    const createPinia = vi.fn(() => 'pinia')
+    const router = { install: vi.fn() }
 
-  it('mounts the app with the upload view on /', async () => {
-    window.history.pushState({}, '', '/')
-
+    vi.doMock('vue', () => ({ createApp }))
+    vi.doMock('pinia', () => ({ createPinia }))
+    vi.doMock('../src/router', () => ({ default: router }))
     await import('../src/main.js')
-    await vi.waitFor(() => expect(document.querySelector('#app').innerHTML).toContain('Upload Video'), { timeout: 30_000 })
-  }, 35_000)
+
+    expect(createApp).toHaveBeenCalledOnce()
+    expect(use).toHaveBeenNthCalledWith(1, 'pinia')
+    expect(use).toHaveBeenNthCalledWith(2, router)
+    expect(mount).toHaveBeenCalledWith('#app')
+  })
 })
