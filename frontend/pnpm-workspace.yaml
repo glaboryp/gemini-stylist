@@ -1,2 +1,7 @@
 allowBuilds:
   esbuild: false
+overrides:
+  "js-beautify>glob": "^14.0.2"
+auditConfig:
+  ignoreGhsas:
+    - GHSA-g3hv-75wg-m249
