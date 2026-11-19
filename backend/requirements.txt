@@ -1,6 +1,6 @@
 fastapi[standard]
 uvicorn
-google-genai>=3.0.0
+google-genai>=3.4.0
 python-multipart
 python-dotenv
 google-api-core
